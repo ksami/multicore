@@ -2,6 +2,8 @@
 
 #define N 1000
 
+// ONLY tested timing with integers
+// TODO: run tests on floats to compare accuracy
 int main(void) {
 	__m64 a;
 	__m64 b;
