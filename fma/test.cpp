@@ -17,13 +17,15 @@ int main(void) {
 	__m128d res;
 	double result;
 
-	for(int i=0; i<N; i++) {
+  res = _mm_setzero_pd(); //sets both upper and lower to 0.0
+	
+  for(int i=0; i<N; i++) {
 		for(int j=0; j<N; j++) {
 			for(int k=0; k<N; k++) {
-				a = _mm_set_sd(9.5);  //sets lower 64 to num, upper to 0.0
-				b = _mm_set_sd(10.0);
-				c = _mm_set_sd(5.0);
-				res = _mm_add_sd(_mm_mul_sd(a, b));
+				a = _mm_set_sd(100.1);  //sets lower 64 to num, upper to 0.0
+				b = _mm_set_sd(0.03);
+				c = _mm_set_sd(_mm_cvtsd_f64(res));
+				res = _mm_add_sd(_mm_mul_sd(a, b), c);
 
 				// a = _mm_set_pi32(0, i);
 				// b = _mm_set_pi32(0, j);
