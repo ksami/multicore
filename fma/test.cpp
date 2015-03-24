@@ -1,14 +1,17 @@
-#include <immintrin.h>
+//#include <emmintrin.h>
 #include <iostream>
 #include <limits>
+#include <x86intrin.h>
 
 #define N 10
 #define A 100.1
-#define B 0.03
+#define B 0.06
 
 using namespace std;
 
 typedef numeric_limits<double> dbl;
+
+//extern __m128d _mm_fmadd_sd(__m128d a, __m128d b, __m128d c);
 
 // ONLY tested timing with integers
 // TODO: run tests on floats to compare accuracy

@@ -1,0 +1,1 @@
+g++ -march=native -mavx test.cpp
