@@ -5,6 +5,8 @@
 #include "timers.h"
 
 #define NDIM    2048
+#define B       50
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
 float a[NDIM][NDIM];
 float b[NDIM][NDIM];
@@ -17,6 +19,7 @@ void mat_mul( float c[NDIM][NDIM], float a[NDIM][NDIM], float b[NDIM][NDIM] )
 {
 	int i, j, k;
 	int r;
+	int ii, jj, kk;
 	
 	// C = AB
 	/* ijk */
@@ -32,13 +35,13 @@ void mat_mul( float c[NDIM][NDIM], float a[NDIM][NDIM], float b[NDIM][NDIM] )
 	}*/
 	
 	/* kij */
-	for (k=0; k<NDIM; k++){ 
+	/*for (k=0; k<NDIM; k++){ 
 		for (i=0; i<NDIM; i++){
 			r = a[i][k];
 			for (j=0; j<NDIM; j++)
 				c[i][j] += r * b[k][j];
 			}
-	}
+	}*/
 
 	/* jki */
 	/*for (j=0; j<NDIM; j++){
@@ -48,6 +51,14 @@ void mat_mul( float c[NDIM][NDIM], float a[NDIM][NDIM], float b[NDIM][NDIM] )
 				c[i][j] += a[i][k] * r;
 			}
 	}*/
+
+	for (ii = 0; ii < NDIM; ii += B) 
+		for (jj = 0; jj < NDIM; jj += B)
+			for (kk = 0; kk < NDIM; kk += B)
+				for (i = ii; i < MIN(ii+B, NDIM); i++) 
+					for (j = jj; j < MIN(jj+B, NDIM); j++) 
+						for (k = kk; k < MIN(kk+B, NDIM); k++) 
+							c[i][j] += a[i][k] * b[k][j];
 }
 
 /************************** DO NOT TOUCH BELOW HERE ******************************/
