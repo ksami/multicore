@@ -16,9 +16,11 @@ int validation = 0;
 void mat_mul( float c[NDIM][NDIM], float a[NDIM][NDIM], float b[NDIM][NDIM] )
 {
 	int i, j, k;
+	int r;
 	
 	// C = AB
-	for( i = 0; i < NDIM; i++ )
+	/* ijk */
+	/*for( i = 0; i < NDIM; i++ )
 	{
 		for( j = 0; j < NDIM; j++ )
 		{
@@ -27,7 +29,25 @@ void mat_mul( float c[NDIM][NDIM], float a[NDIM][NDIM], float b[NDIM][NDIM] )
 				c[i][j] += a[i][k] * b[k][j];
 			}
 		}
+	}*/
+	
+	/* kij */
+	for (k=0; k<NDIM; k++){ 
+		for (i=0; i<NDIM; i++){
+			r = a[i][k];
+			for (j=0; j<NDIM; j++)
+				c[i][j] += r * b[k][j];
+			}
 	}
+
+	/* jki */
+	/*for (j=0; j<NDIM; j++){
+		for (k=0; k<NDIM; k++){
+			r = a[k][j];
+			for (i=0; i<NDIM; i++)
+				c[i][j] += a[i][k] * r;
+			}
+	}*/
 }
 
 /************************** DO NOT TOUCH BELOW HERE ******************************/
