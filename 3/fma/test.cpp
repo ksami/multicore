@@ -4,8 +4,6 @@
 #include <x86intrin.h>
 
 #define N 100000
-#define A 100.1
-#define B 0.03
 
 using namespace std;
 
