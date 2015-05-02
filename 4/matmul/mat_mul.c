@@ -33,7 +33,7 @@ void *mat_mul_t(void *t_args)
 
 	int i, j, k;
 
-	args = (thread_args *) t_args;
+	args = (struct thread_args *) t_args;
 	id = args->thread_id;
 	a = args->a;
 	b = args->b;
