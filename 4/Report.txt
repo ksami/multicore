@@ -1,0 +1,25 @@
+Report
+=====
+### 1A
+
+The timings of each pattern of accessing the arrays is as follows:
+
+ ijk  | kij  | jki
+---------------------
+27.76 | 7.31 | 118.41
+
+As expected, the kij pattern is the fastest since it has 0.5 misses/iteration and jki is the slowest since it has 2 misses/iteration.
+
+
+### 1B
+
+The timings of the ijk pattern using tiling with different block sizes is as follows:
+
+Tile Size  | (32K/sizeof(float))/3 - 10 | (32K/sizeof(float))/3 | (32K/sizeof(float))/3 + 10
+--------------------------------------------------------------------------------------
+Time Taken |      24.420728           |      24.416990      |         27.955702
+
+The size of the cache is 32K, thus the maximum block size for each array is (32K/sizeof(float))/3. As can be seen from the results, having a block size smaller than this max block size does not affect the timings while having a block size larger than this max block size increases the time taken.
+
+
+### 1C

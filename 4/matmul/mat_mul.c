@@ -2,8 +2,10 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <pthread.h>
 #include "timers.h"
 
+#define NUM_THREADS 4
 #define NDIM    2048
 #define B       100000
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
@@ -15,15 +17,32 @@ float c[NDIM][NDIM];
 int print_matrix = 0;
 int validation = 0;
 
-void mat_mul( float c[NDIM][NDIM], float a[NDIM][NDIM], float b[NDIM][NDIM] )
+struct thread_args{
+	int  thread_id;
+	float a[NDIM][NDIM];
+	float b[NDIM][NDIM];
+	float c[NDIM][NDIM];
+};
+
+void *mat_mul_t(void *t_args)
 {
+	struct thread_args *args;
+	int id;
+	float a[NDIM][NDIM];
+	float b[NDIM][NDIM];
+	float c[NDIM][NDIM];
+
 	int i, j, k;
-	//int r;
-	int ii, jj, kk;
-	
-	// C = AB
-	/* ijk */
-	/*for( i = 0; i < NDIM; i++ )
+
+	args = (thread_args *) t_args;
+	id = args->thread_id;
+	a = args->a;
+	b = args->b;
+	c = args->c;
+
+	printf("Thread %d starting...", id);
+
+	for( i = NDIM*(id/NUM_THREADS); i < NDIM*((id+1)/NUM_THREADS); i++ )
 	{
 		for( j = 0; j < NDIM; j++ )
 		{
@@ -32,33 +51,53 @@ void mat_mul( float c[NDIM][NDIM], float a[NDIM][NDIM], float b[NDIM][NDIM] )
 				c[i][j] += a[i][k] * b[k][j];
 			}
 		}
-	}*/
+	}
+
+	pthread_exit(NULL);
+}
+
+void mat_mul( float c[NDIM][NDIM], float a[NDIM][NDIM], float b[NDIM][NDIM] )
+{
+	pthread_t threads[NUM_THREADS];
+	int i, j, k;
+
+	for(i=0; i<NUM_THREADS; i++)
+	{
+		struct thread_args args;
+
+		args.thread_id = i;
+		args.a = a;
+		args.b = b;
+		args.c = c;
+
+		retcode = pthread_create(&threads[i], NULL, mat_mul_t, (void *) args);
+
+		if(retcode)
+		{
+			printf("ERROR: return code from pthread_create() for id=%d is %d\n", i, retcode);
+			exit(-1);
+		}
+	}
+
+	for(i=0; i<NUM_THREADS; i++)
+	{
+		pthread_join(threads[i], NULL);
+	}
+
+	pthread_exit(NULL);
 	
-	/* kij */
-	/*for (k=0; k<NDIM; k++){ 
-		for (i=0; i<NDIM; i++){
-			r = a[i][k];
-			for (j=0; j<NDIM; j++)
-				c[i][j] += r * b[k][j];
-			}
-	}*/
+	/* ijk */
+	// for( i = 0; i < NDIM; i++ )
+	// {
+	// 	for( j = 0; j < NDIM; j++ )
+	// 	{
+	// 		for( k = 0; k < NDIM; k++ )
+	// 		{
+	// 			c[i][j] += a[i][k] * b[k][j];
+	// 		}
+	// 	}
+	// }
 
-	/* jki */
-	/*for (j=0; j<NDIM; j++){
-		for (k=0; k<NDIM; k++){
-			r = a[k][j];
-			for (i=0; i<NDIM; i++)
-				c[i][j] += a[i][k] * r;
-			}
-	}*/
-
-	for (ii = 0; ii < NDIM; ii += B) 
-		for (jj = 0; jj < NDIM; jj += B)
-			for (kk = 0; kk < NDIM; kk += B)
-				for (i = ii; i < MIN(ii+B, NDIM); i++) 
-					for (j = jj; j < MIN(jj+B, NDIM); j++) 
-						for (k = kk; k < MIN(kk+B, NDIM); k++) 
-							c[i][j] += a[i][k] * b[k][j];
 }
 
 /************************** DO NOT TOUCH BELOW HERE ******************************/
