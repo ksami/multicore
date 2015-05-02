@@ -24,7 +24,7 @@ void *mat_mul_t(void *thread_id)
 
 	id = (int) thread_id;
 
-	printf("Thread %d starting...", id);
+	printf("Thread %d starting...\n", id);
 
 	for( i = NDIM*(id/NUM_THREADS); i < NDIM*((id+1)/NUM_THREADS); i++ )
 	{
@@ -62,7 +62,9 @@ void mat_mul( float c[NDIM][NDIM], float a[NDIM][NDIM], float b[NDIM][NDIM] )
 		pthread_join(threads[i], NULL);
 	}
 
-	pthread_exit(NULL);
+	printf("all threads joined\n");
+
+	//pthread_exit(NULL);
 	
 	/* ijk */
 	// for( i = 0; i < NDIM; i++ )
