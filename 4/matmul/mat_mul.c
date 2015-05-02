@@ -16,28 +16,13 @@ float c[NDIM][NDIM];
 int print_matrix = 0;
 int validation = 0;
 
-struct thread_args{
-	int  thread_id;
-	float a[NDIM][NDIM];
-	float b[NDIM][NDIM];
-	float c[NDIM][NDIM];
-};
 
-void *mat_mul_t(void *t_args)
+void *mat_mul_t(void *thread_id)
 {
-	struct thread_args *args;
 	int id;
-	float a[NDIM][NDIM];
-	float b[NDIM][NDIM];
-	float c[NDIM][NDIM];
-
 	int i, j, k;
 
-	args = (struct thread_args *) t_args;
-	id = args->thread_id;
-	a = args->a;
-	b = args->b;
-	c = args->c;
+	id = (int) thread_id;
 
 	printf("Thread %d starting...", id);
 
@@ -58,18 +43,12 @@ void *mat_mul_t(void *t_args)
 void mat_mul( float c[NDIM][NDIM], float a[NDIM][NDIM], float b[NDIM][NDIM] )
 {
 	pthread_t threads[NUM_THREADS];
-	int i, j, k;
+	int retcode;
+	int i;
 
 	for(i=0; i<NUM_THREADS; i++)
 	{
-		struct thread_args args;
-
-		args.thread_id = i;
-		args.a = a;
-		args.b = b;
-		args.c = c;
-
-		retcode = pthread_create(&threads[i], NULL, mat_mul_t, (void *) args);
+		retcode = pthread_create(&threads[i], NULL, mat_mul_t, (void *) i);
 
 		if(retcode)
 		{
