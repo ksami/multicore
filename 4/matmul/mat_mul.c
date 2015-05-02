@@ -7,7 +7,6 @@
 
 #define NUM_THREADS 4
 #define NDIM    2048
-#define B       100000
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
 float a[NDIM][NDIM];
