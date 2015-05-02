@@ -2,8 +2,8 @@ TARGET=mat_mul
 OBJS=mat_mul.o timers.o
 
 CC=gcc
-CFLAGS=-g -O2 -Wall -pthread
-LDFLAGS=
+CFLAGS=-g -O2 -Wall
+LDFLAGS=-pthread
 
 all: $(TARGET)
 
