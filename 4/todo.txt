@@ -1,0 +1,7 @@
+todo
+=====
+- check weak and strong scalability on matmul pthread
+- understand k-means
+- parallelize k-means using pthread
+- check weak and strong scalability on k-means pthread
+
