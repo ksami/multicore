@@ -28,6 +28,8 @@ void *kmeans_t_assign(void *thread_id)
 
 	// Assignment step
 	for (data_i = data_n*(id/NUM_THREADS); data_i < data_n*((id+1)/NUM_THREADS); data_i++) {
+		printf("debug: thread %d, data_i %d/%d\n",id,data_i,data_n);
+
 		float min_dist = DBL_MAX;
 	
 		for (class_i = 0; class_i < class_n; class_i++) {
