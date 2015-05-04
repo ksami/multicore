@@ -124,6 +124,8 @@ void kmeans(int aiteration_n, int aclass_n, int adata_n, Point* acentroids, Poin
 		{
 			retcode = pthread_create(&threads[t], NULL, kmeans_t_assign, (void*) t);
 
+			printf("debug: %d\n", t);
+
 			if(retcode)
 			{
 				printf("ERROR: return code from pthread_create() for id=%d is %d\n", t, retcode);
@@ -138,7 +140,10 @@ void kmeans(int aiteration_n, int aclass_n, int adata_n, Point* acentroids, Poin
 		// Update //
 		for(t=0; t<NUM_THREADS; t++)
 		{
-			retcode = pthread_create(&threads[t], NULL, kmeans_t_update, (void*) t);
+			retcode = pthread_create(&threads[t], NULL, 
+				kmeans_t_update, (void*) t);
+
+			printf("debug: %d\n", t);
 
 			if(retcode)
 			{
@@ -156,6 +161,8 @@ void kmeans(int aiteration_n, int aclass_n, int adata_n, Point* acentroids, Poin
 		{
 			retcode = pthread_create(&threads[t], NULL, kmeans_t_sum, (void*) t);
 
+			printf("debug: %d\n", t);
+
 			if(retcode)
 			{
 				printf("ERROR: return code from pthread_create() for id=%d is %d\n", t, retcode);
@@ -171,6 +178,8 @@ void kmeans(int aiteration_n, int aclass_n, int adata_n, Point* acentroids, Poin
 		for(t=0; t<NUM_THREADS; t++)
 		{
 			retcode = pthread_create(&threads[t], NULL, kmeans_t_divide, (void*) t);
+
+			printf("debug: %d\n", t);
 
 			if(retcode)
 			{
