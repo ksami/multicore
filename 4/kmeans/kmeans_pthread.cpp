@@ -24,6 +24,8 @@ void *kmeans_t_assign(void *thread_id)
 	// Temporal point value to calculate distance
 	Point t;
 
+	printf("debug: initializing thread\n");
+
 	id = *((int *) thread_id);
 
 	// Assignment step
@@ -136,6 +138,7 @@ void kmeans(int aiteration_n, int aclass_n, int adata_n, Point* acentroids, Poin
 		}
 		for(t=0; t<NUM_THREADS; t++)
 		{
+			printf("debug: joining %d\n",t);
 			pthread_join(threads[t], NULL);
 		}
 
