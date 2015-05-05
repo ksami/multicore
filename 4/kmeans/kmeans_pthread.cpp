@@ -129,8 +129,6 @@ void kmeans(int aiteration_n, int aclass_n, int adata_n, Point* acentroids, Poin
 	// Iterate through number of interations
 	for (i = 0; i < iteration_n; i++)
 	{
-		printf("Iteration %d\n", i);
-
 		// Assignment //
 		for(t=0; t<NUM_THREADS; t++)
 		{
