@@ -6,7 +6,7 @@
 #include <float.h>
 #include <pthread.h>
 
-#define NUM_THREADS 4
+#define NUM_THREADS 8
 
 int iteration_n;
 int class_n;
