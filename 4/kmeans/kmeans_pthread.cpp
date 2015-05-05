@@ -117,6 +117,7 @@ void kmeans(int aiteration_n, int aclass_n, int adata_n, Point* acentroids, Poin
 	pthread_t threads[NUM_THREADS];
 	int retcode;
 	int i, t;
+	int *tmp = NULL;
 
 	// Iterate through number of interations
 	for (i = 0; i < iteration_n; i++)
@@ -126,7 +127,8 @@ void kmeans(int aiteration_n, int aclass_n, int adata_n, Point* acentroids, Poin
 		// Assignment //
 		for(t=0; t<NUM_THREADS; t++)
 		{
-			retcode = pthread_create(&threads[t], NULL, kmeans_t_assign, (void*) t);
+			*tmp = t;
+			retcode = pthread_create(&threads[t], NULL, kmeans_t_assign, (void*) tmp);
 
 			printf("debug: %d\n", t);
 
@@ -145,8 +147,8 @@ void kmeans(int aiteration_n, int aclass_n, int adata_n, Point* acentroids, Poin
 		// Update //
 		for(t=0; t<NUM_THREADS; t++)
 		{
-			retcode = pthread_create(&threads[t], NULL, 
-				kmeans_t_update, (void*) t);
+			*tmp = t;
+			retcode = pthread_create(&threads[t], NULL, kmeans_t_update, (void*) tmp);
 
 			printf("debug: %d\n", t);
 
@@ -164,7 +166,8 @@ void kmeans(int aiteration_n, int aclass_n, int adata_n, Point* acentroids, Poin
 		// Sum //
 		for(t=0; t<NUM_THREADS; t++)
 		{
-			retcode = pthread_create(&threads[t], NULL, kmeans_t_sum, (void*) t);
+			*tmp = t;
+			retcode = pthread_create(&threads[t], NULL, kmeans_t_sum, (void*) tmp);
 
 			printf("debug: %d\n", t);
 
@@ -182,7 +185,8 @@ void kmeans(int aiteration_n, int aclass_n, int adata_n, Point* acentroids, Poin
 		// Divide //
 		for(t=0; t<NUM_THREADS; t++)
 		{
-			retcode = pthread_create(&threads[t], NULL, kmeans_t_divide, (void*) t);
+			*tmp = t;
+			retcode = pthread_create(&threads[t], NULL, kmeans_t_divide, (void*) tmp);
 
 			printf("debug: %d\n", t);
 
