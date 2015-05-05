@@ -28,15 +28,11 @@ void *kmeans_t_assign(void *targs)
 	// Temporal point value to calculate distance
 	Point t;
 
-	printf("debug: initializing thread\n");
-
 	args = (struct thread_data *) targs;
 	id = args->id;
 
 	// Assignment step
 	for (data_i = data_n*(id/NUM_THREADS); data_i < data_n*((id+1)/NUM_THREADS); data_i++) {
-		//printf("debug: thread %d, data_i %d/%d\n",id,data_i,data_n);
-
 		float min_dist = DBL_MAX;
 	
 		for (class_i = 0; class_i < class_n; class_i++) {
@@ -141,8 +137,6 @@ void kmeans(int aiteration_n, int aclass_n, int adata_n, Point* acentroids, Poin
 			args.id = t;
 			retcode = pthread_create(&threads[t], NULL, kmeans_t_assign, (void*) &args);
 
-			printf("debug: %d\n", t);
-
 			if(retcode)
 			{
 				printf("ERROR: return code from pthread_create() for id=%d is %d\n", t, retcode);
@@ -151,7 +145,6 @@ void kmeans(int aiteration_n, int aclass_n, int adata_n, Point* acentroids, Poin
 		}
 		for(t=0; t<NUM_THREADS; t++)
 		{
-			printf("debug: joining %d\n",t);
 			pthread_join(threads[t], NULL);
 		}
 
@@ -160,8 +153,6 @@ void kmeans(int aiteration_n, int aclass_n, int adata_n, Point* acentroids, Poin
 		{
 			args.id = t;
 			retcode = pthread_create(&threads[t], NULL, kmeans_t_update, (void*) &args);
-
-			printf("debug: %d\n", t);
 
 			if(retcode)
 			{
@@ -180,8 +171,6 @@ void kmeans(int aiteration_n, int aclass_n, int adata_n, Point* acentroids, Poin
 			args.id = t;
 			retcode = pthread_create(&threads[t], NULL, kmeans_t_sum, (void*) &args);
 
-			printf("debug: %d\n", t);
-
 			if(retcode)
 			{
 				printf("ERROR: return code from pthread_create() for id=%d is %d\n", t, retcode);
@@ -198,8 +187,6 @@ void kmeans(int aiteration_n, int aclass_n, int adata_n, Point* acentroids, Poin
 		{
 			args.id = t;
 			retcode = pthread_create(&threads[t], NULL, kmeans_t_divide, (void*) &args);
-
-			printf("debug: %d\n", t);
 
 			if(retcode)
 			{
