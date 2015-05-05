@@ -19,11 +19,11 @@ int* count;
 
 void *kmeans_t_assign(void *thread_id)
 {
-    int id;
+    int* id;
 
     printf("debug: initializing thread\n");
 
-    id = *((int *) thread_id);
+    id = (int *) thread_id;
 
     printf("thread %d\n", id);
 
