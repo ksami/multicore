@@ -25,7 +25,7 @@ void *kmeans_t_assign(void *thread_id)
 
     id = (int *) thread_id;
 
-    printf("thread %d\n", id);
+    printf("thread %d\n", *id);
 
     pthread_exit(NULL);
 }
@@ -45,6 +45,7 @@ void kmeans(int aiteration_n, int aclass_n, int adata_n, Point* acentroids, Poin
     pthread_t threads[NUM_THREADS];
     int retcode;
     int i, t;
+    int *tmp = NULL;
 
     // Iterate through number of interations
     for (i = 0; i < iteration_n; i++)
@@ -54,7 +55,8 @@ void kmeans(int aiteration_n, int aclass_n, int adata_n, Point* acentroids, Poin
         // Assignment //
         for(t=0; t<NUM_THREADS; t++)
         {
-            retcode = pthread_create(&threads[t], NULL, kmeans_t_assign, (void*) t);
+        	*tmp = t;
+            retcode = pthread_create(&threads[t], NULL, kmeans_t_assign, (void*) tmp);
 
             printf("debug: %d\n", t);
 
