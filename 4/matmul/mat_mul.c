@@ -63,8 +63,6 @@ void mat_mul( float c[NDIM][NDIM], float a[NDIM][NDIM], float b[NDIM][NDIM] )
 	}
 
 	printf("all threads joined\n");
-
-	//pthread_exit(NULL);
 	
 	/* ijk */
 	// for( i = 0; i < NDIM; i++ )
