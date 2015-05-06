@@ -36,7 +36,7 @@ run_seq:
 
 run:
 	./gen_data.py centroid 64 centroid.point
-	./gen_data.py data 131072 data.point 64
+	./gen_data.py data 65536 data.point 64
 	thorq --add kmeans_pthread centroid.point data.point result_par.class final_centroid_par.point 1024
 	
 
