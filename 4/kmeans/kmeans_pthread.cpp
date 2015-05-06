@@ -32,7 +32,7 @@ void *kmeans_t_assign(void *targs)
 	id = args->id;
 
 	// Assignment step
-	for (data_i = data_n*(id/NUM_THREADS); data_i < data_n*((id+1)/NUM_THREADS); data_i++) {
+	for (data_i = data_n*(id/NUM_THREADS); data_i < data_n*((id+2)/NUM_THREADS); data_i++) {
 		float min_dist = DBL_MAX;
 	
 		for (class_i = 0; class_i < class_n; class_i++) {
@@ -62,7 +62,7 @@ void *kmeans_t_update(void *targs)
 
 	// Update step
 	// Clear sum buffer and class count
-	for (class_i = class_n*(id/NUM_THREADS); class_i < class_n*((id+1)/NUM_THREADS); class_i++) {
+	for (class_i = class_n*(id/NUM_THREADS); class_i < class_n*((id+2)/NUM_THREADS); class_i++) {
 		centroids[class_i].x = 0.0;
 		centroids[class_i].y = 0.0;
 		count[class_i] = 0;
@@ -81,7 +81,7 @@ void *kmeans_t_sum(void *targs)
 	id = args->id;
 
 	// Sum up and count data for each class
-	for (data_i = data_n*(id/NUM_THREADS); data_i < data_n*((id+1)/NUM_THREADS); data_i++) {
+	for (data_i = data_n*(id/NUM_THREADS); data_i < data_n*((id+2)/NUM_THREADS); data_i++) {
 		centroids[partitioned[data_i]].x += data[data_i].x;
 		centroids[partitioned[data_i]].y += data[data_i].y;
 		count[partitioned[data_i]]++;
@@ -100,7 +100,7 @@ void *kmeans_t_divide(void *targs)
 	id = args->id;
 
 	// Divide the sum with number of class for mean point
-	for (class_i = class_n*(id/NUM_THREADS); class_i < class_n*((id+1)/NUM_THREADS); class_i++) {
+	for (class_i = class_n*(id/NUM_THREADS); class_i < class_n*((id+2)/NUM_THREADS); class_i++) {
 		centroids[class_i].x /= count[class_i];
 		centroids[class_i].y /= count[class_i];
 	}

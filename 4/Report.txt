@@ -23,3 +23,14 @@ The size of the cache is 32K, thus the maximum block size for each array is (32K
 
 
 ### 1C
+Using 4 pthreads and the strip-mining method together with the ijk pattern, the total time taken reduced from 27.76sec to 17.98sec.
+
+For strong scalability, the number of pthreads was increased to 8 from 4, the total time taken is the same at 17.98sec.
+For weak scalability, 
+
+
+### 1D
+Using 4 pthreads to split each task into 4 using the strip-mining technique, the overall result was an increase in the time taken for the entire program from 31.75sec to 46.66sec. This could be because of context switching between the threads and for thread creation and joining.
+
+For strong scalability, the number of pthreads was increased to 8, the total time taken is reduced from 46.66sec to 39.55sec.
+For weak scalability, the number of pthreads was doubled to 8 while the amount of data was doubled to 131072 to fulfill constant problem size per pthread. The time taken increased from 46.66sec to 87.12sec.
