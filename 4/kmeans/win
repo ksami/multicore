@@ -1,4 +1,0 @@
-./gen_data.py centroid 64 centroid.point
-./gen_data.py data 65536 data.point 64
-kmeans_pthread.exe centroid.point data.point result_par.class final_centroid_par.point 1024
-
