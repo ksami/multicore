@@ -22,7 +22,6 @@ int main(int argc, char** argv)
     int i;
 
     timer_init();
-    timer_start(1);
 
     // Vector Initialization //
     float* hostA;
@@ -106,6 +105,8 @@ int main(int argc, char** argv)
     //debug
     printf("executing kernel\n");
 
+    timer_start(1);
+
     // Execute the kernel
     clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL, global, local, 0, NULL, NULL);
 
@@ -114,11 +115,13 @@ int main(int argc, char** argv)
 
     // Wait until the kernel command completes 
     // (no need to wait because the command_queue is an in-order queue)
-    // clFinish(command_queue)
+    clFinish(command_queue);
+    timer_stop(1);
+
     // Copy the result from bufferC to hostC
     clEnqueueReadBuffer(command_queue, bufferC, CL_TRUE, 0, sizeC, hostC, 0, NULL, NULL);
     
-    timer_stop(1);
+
 
     printf("Time elapsed : %lf sec\n", timer_read(1));
 
