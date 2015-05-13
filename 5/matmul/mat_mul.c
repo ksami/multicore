@@ -147,11 +147,21 @@ int main(int argc, char** argv)
     // OpenCL //
     // Obtain a list of available OpenCL platforms
     cl_platform_id platform;
+
+    //debug
+    printf("platform declared\n");
+
     clGetPlatformIDs(1, &platform, NULL);
+
+    //debug
+    printf("platform IDed\n");
 
     // Obtain the list of available devices on the OpenCL platform
     cl_device_id device;
     clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 1, &device, NULL);
+
+    //debug
+    printf("device IDed\n");
 
     // Create an OpenCL context on a GPU device
     cl_context context;
