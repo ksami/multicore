@@ -13,5 +13,8 @@ $(TARGET):$(OBJS)
 clean:
 	rm -rf $(TARGET) $(OBJS) task*
 
-run: $(TARGET)
+run_cpu: $(TARGET)
 	thorq --add ./$(TARGET) -v
+
+run: $(TARGET)
+	thorq --add --device gpu ./$(TARGET) -v
