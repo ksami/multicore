@@ -1,0 +1,28 @@
+1. HW # 4 use the OpenCL code parallelization and given Matrix Multiplication, 
+
+2. HW # 4 parallelism in a given OpenCL given K-means algorithm and code, measure performance on CPU and GPU
+
+
+ 1, 2, all write the source code and reports, must be submitted
+
+ it can be modified without limit when a given source code necessary to perform this task
+
+ such size primer performs dynamic memory allocation to allocate memory for a large Matrix Lock code can be modified
+
+ write in report whether using the OpenCL platform and any device in order to use the CPU / GPU specify in the document
+
+ CPU / GPU is implemented in both cases to use one OpenCL device
+
+ Change the Global work size and Local work size to determine the performance and state the results in the report
+
+ For qn 1, if any size smaller than the 100,000 X 100,000 Matrix Multiplication be processed the source code can be written in the code submitted 10,000 X 10,000 Matrix can be used to perform the Multiplication
+
+ specify how to modify the size of the Matrix in the report
+
+ GPU memory in consideration of the limitation of the size of the data transfer between the kernel and multiple CPU-GPU It will be implemented to be treated in the running
+
+ 2 single cases of 1,048,576 Data point, 16 of Centroid, 1024 to perform a single iteration Writing the code to perform the K means algorithm, Make run during Configuration for the above By setting the Makefile to perform the job will submit
+
+ The challenges are considerable difficulty, the performance has changed so greatly, depending on whether optimization projects I think a rehearsal of the tree and spend a good time to try Optimization
+
+ When the assistant meets the basic performance expectations judoe scores, than other students Outstanding performance to embellish a good student may get extra points
