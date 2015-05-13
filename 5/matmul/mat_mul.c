@@ -122,6 +122,7 @@ const char* kernel_src =
 int main(int argc, char** argv)
 {
     int i;
+    double start, end;
 
     timer_init();
 
@@ -203,9 +204,9 @@ int main(int argc, char** argv)
     // Specify the number of total work-items in a work-group
     size_t local[1] = { 16 };
 
-    timer_start(1);
+    start = get_time();
     //debug
-    printf("executing kernel\n");
+    printf("executing kernel at %lf\n", start);
 
     // Execute the kernel
     clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL, global, local, 0, NULL, NULL);
@@ -219,9 +220,10 @@ int main(int argc, char** argv)
     // Copy the result from bufferC to hostC
     clEnqueueReadBuffer(command_queue, bufferC, CL_TRUE, 0, sizeC, hostC, 0, NULL, NULL);
     
-    timer_stop(1);
+    end = get_time();
+    printf("end at %lf\n", end);
 
-    printf("Time elapsed : %lf sec\n", timer_read(1));
+    printf("Time elapsed : %lf sec\n", end-start);
 
     // Print the result
     // for (i = 0; i < SIZE; i++) {
