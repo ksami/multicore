@@ -207,7 +207,7 @@ int main(int argc, char** argv)
     clEnqueueReadBuffer(command_queue, bufferC, CL_TRUE, 0, sizeC, hostC, 0, NULL, NULL);
     
     // Print the result
-    for (int i = 0; i < SIZE; i++) {
+    for (i = 0; i < SIZE; i++) {
         printf("C[%d] = %f\n", i, hostC[i]);
     }
 
