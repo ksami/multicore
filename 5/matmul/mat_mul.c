@@ -141,34 +141,19 @@ int main(int argc, char** argv)
         hostB[i] = (float) i * 2;
     }
 
-    //debug
-    printf("starting opencl\n");
 
     // OpenCL //
     // Obtain a list of available OpenCL platforms
     cl_platform_id platform;
-
-    //debug
-    printf("platform declared\n");
-
     clGetPlatformIDs(1, &platform, NULL);
-
-    //debug
-    printf("platform IDed\n");
 
     // Obtain the list of available devices on the OpenCL platform
     cl_device_id device;
     clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 1, &device, NULL);
 
-    //debug
-    printf("device IDed\n");
-
     // Create an OpenCL context on a GPU device
     cl_context context;
     context = clCreateContext(0, 1, &device, NULL, NULL, NULL);
-
-    //debug
-    printf("context created\n");
 
 
     // Create a command queue and attach it to the compute device
@@ -184,9 +169,6 @@ int main(int argc, char** argv)
     bufferB = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeB, NULL, NULL);
     bufferC = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeC, NULL, NULL);
 
-    //debug
-    printf("buffers allocated\n");
-
 
     // Create an OpenCL program object for the context 
     // and load the kernel source into the program object
@@ -194,24 +176,13 @@ int main(int argc, char** argv)
     size_t kernel_src_len = strlen(kernel_src);
     program = clCreateProgramWithSource(context, 1, (const char**) &kernel_src, &kernel_src_len, NULL);
 
-    //debug
-    printf("program created\n");
-
-
     // Build (compile and link) the program executable 
     // from the source or binary for the device
     clBuildProgram(program, 1, &device, NULL, NULL, NULL);
 
-    //debug
-    printf("program built\n");
-
-
     // Create a kernel object from the program
     cl_kernel kernel;
     kernel = clCreateKernel(program, "vec_add", NULL);
-
-    //debug
-    printf("kernel created\n");
 
 
     // Set the arguments of the kernel
@@ -219,13 +190,9 @@ int main(int argc, char** argv)
     clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*) &bufferB);
     clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*) &bufferC);
 
-
     // Copy the input vectors to the corresponding buffers
     clEnqueueWriteBuffer(command_queue, bufferA, CL_FALSE, 0, sizeA, hostA, 0, NULL, NULL);
     clEnqueueWriteBuffer(command_queue, bufferB, CL_FALSE, 0, sizeB, hostB, 0, NULL, NULL);
-
-    //debug
-    printf("buffers written\n");
 
 
     // The kernel index space is one dimensional
@@ -233,12 +200,16 @@ int main(int argc, char** argv)
     size_t global[1] = { SIZE };
     // Specify the number of total work-items in a work-group
     size_t local[1] = { 16 };
+
+    timer_start(1);
+    //debug
+    printf("executing kernel\n");
+
     // Execute the kernel
     clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL, global, local, 0, NULL, NULL);
 
     //debug
     printf("kernel executed\n");
-
 
     // Wait until the kernel command completes 
     // (no need to wait because the command_queue is an in-order queue)
@@ -246,10 +217,14 @@ int main(int argc, char** argv)
     // Copy the result from bufferC to hostC
     clEnqueueReadBuffer(command_queue, bufferC, CL_TRUE, 0, sizeC, hostC, 0, NULL, NULL);
     
+    timer_stop(1);
+
+    printf("Time elapsed : %lf sec\n", timer_read(1));
+
     // Print the result
-    for (i = 0; i < SIZE; i++) {
-        printf("C[%d] = %f\n", i, hostC[i]);
-    }
+    // for (i = 0; i < SIZE; i++) {
+    //     printf("C[%d] = %f\n", i, hostC[i]);
+    // }
 
     return 0;
 }
