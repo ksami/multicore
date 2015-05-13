@@ -17,7 +17,7 @@
 // int print_matrix = 0;
 // int validation = 0;
 
-#define SIZE 100000 * 100000
+#define SIZE 1024
 // Kernel source code
 const char* kernel_src = 
 "__kernel void vec_add(__global const float* A, " 
@@ -122,9 +122,9 @@ const char* kernel_src =
 int main(int argc, char** argv)
 {
     int i;
-    double start, end;
 
     timer_init();
+    timer_start(1);
 
     // Vector Initialization //
     float* hostA;
@@ -204,9 +204,9 @@ int main(int argc, char** argv)
     // Specify the number of total work-items in a work-group
     size_t local[1] = { 16 };
 
-    start = get_time();
+
     //debug
-    printf("executing kernel at %lf\n", start);
+    printf("executing kernel\n");
 
     // Execute the kernel
     clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL, global, local, 0, NULL, NULL);
@@ -220,10 +220,9 @@ int main(int argc, char** argv)
     // Copy the result from bufferC to hostC
     clEnqueueReadBuffer(command_queue, bufferC, CL_TRUE, 0, sizeC, hostC, 0, NULL, NULL);
     
-    end = get_time();
-    printf("end at %lf\n", end);
+    timer_stop(1);
 
-    printf("Time elapsed : %lf sec\n", end-start);
+    printf("Time elapsed : %lf sec\n", timer_read(1));
 
     // Print the result
     // for (i = 0; i < SIZE; i++) {
