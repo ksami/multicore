@@ -123,6 +123,8 @@ int main(int argc, char** argv)
 {
     int i;
 
+    timer_init();
+
     // Vector Initialization //
     float* hostA;
     float* hostB;
