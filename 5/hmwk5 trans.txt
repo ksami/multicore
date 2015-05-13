@@ -1,4 +1,4 @@
-1. HW # 4 use the OpenCL code parallelization and given Matrix Multiplication, 
+1. HW # 4 use the OpenCL code parallelization and given Matrix Multiplication, measure performance on CPU and GPU
 
 2. HW # 4 parallelism in a given OpenCL given K-means algorithm and code, measure performance on CPU and GPU
 

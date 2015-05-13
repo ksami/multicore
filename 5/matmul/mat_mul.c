@@ -121,6 +121,8 @@ const char* kernel_src =
 
 int main(int argc, char** argv)
 {
+    int i;
+
     // Vector Initialization //
     float* hostA;
     float* hostB;
@@ -134,7 +136,7 @@ int main(int argc, char** argv)
     hostB = (float*) malloc(sizeB);
     hostC = (float*) malloc(sizeC);
 
-    for (int i = 0; i < SIZE; i++) {
+    for (i = 0; i < SIZE; i++) {
         hostA[i] = (float) i;
         hostB[i] = (float) i * 2;
     }
@@ -208,7 +210,7 @@ int main(int argc, char** argv)
     for (int i = 0; i < SIZE; i++) {
         printf("C[%d] = %f\n", i, hostC[i]);
     }
-    
+
     return 0;
 }
 
