@@ -17,7 +17,7 @@
 // int print_matrix = 0;
 // int validation = 0;
 
-#define SIZE 1024
+#define SIZE (10000 * 10000)
 // Kernel source code
 const char* kernel_src = 
 "__kernel void vec_add(__global const float* A, " 
