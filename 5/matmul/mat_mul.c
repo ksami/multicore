@@ -6,7 +6,7 @@
 #include <string.h>
 #include "timers.h"
 
-#define SIZE 11500
+#define SIZE 10000
 // Kernel source code
 const char* kernel_src = 
 "__kernel void mat_mul("
@@ -26,18 +26,9 @@ const char* kernel_src =
 
 int main(int argc, char** argv)
 {
-    //debug
-    printf("main init\n");
-
     int i, j, k = 1;
 
-    //debug
-    printf("int declare\n");
-
     timer_init();
-
-    //debug
-    printf("time init\n");
 
     // Vector Initialization //
     float** hostA;
@@ -52,14 +43,12 @@ int main(int argc, char** argv)
     hostB = (float**) malloc(SIZE * sizeof(float*));
     hostC = (float**) malloc(SIZE * sizeof(float*));
 
-    for(i=0; i<SIZE; i++){
+    for(i=0; i<SIZE; i++)
+    {
       hostA[i] = (float*) malloc(SIZE * sizeof(float));
       hostB[i] = (float*) malloc(SIZE * sizeof(float));
       hostC[i] = (float*) malloc(SIZE * sizeof(float));
     }
-
-    //debug
-    printf("size declared\n");
 
     for( i = 0; i < SIZE; i++ )
     {
@@ -71,9 +60,6 @@ int main(int argc, char** argv)
         }
     }
 
-    //debug
-    printf("vec init\n");
-    
     
     // OpenCL //
     // Obtain a list of available OpenCL platforms
@@ -102,9 +88,6 @@ int main(int argc, char** argv)
     bufferB = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeB, NULL, NULL);
     bufferC = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeC, NULL, NULL);
 
-    //debug
-    printf("buf alloc\n");
-
 
     // Create an OpenCL program object for the context 
     // and load the kernel source into the program object
@@ -112,33 +95,20 @@ int main(int argc, char** argv)
     size_t kernel_src_len = strlen(kernel_src);
     program = clCreateProgramWithSource(context, 1, (const char**) &kernel_src, &kernel_src_len, NULL);
 
-    //debug
-    printf("prog create\n");
-
     // Build (compile and link) the program executable 
     // from the source or binary for the device
     clBuildProgram(program, 1, &device, NULL, NULL, NULL);
-
-    //debug
-    printf("prog build\n");
 
     // Create a kernel object from the program
     cl_kernel kernel;
     kernel = clCreateKernel(program, "mat_mul", NULL);
 
-    //debug
-    printf("kernel create\n");
-
 
     // Set the arguments of the kernel
-    
     clSetKernelArg(kernel, 0, sizeof(cl_mem), (void*) &bufferA);
     clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*) &bufferB);
     clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*) &bufferC);
     clSetKernelArg(kernel, 3, sizeof(int), (void*) SIZE);
-    
-    //debug
-    printf("arg set\n");
 
 
     // Copy the input vectors to the corresponding buffers
@@ -150,19 +120,14 @@ int main(int argc, char** argv)
     // Specify the number of total work-items in the index space
     size_t global[1] = { SIZE };
     // Specify the number of total work-items in a work-group
-    size_t local[1] = { 16 };
+    size_t local[1] = { 8 };
 
-
-    //debug
-    printf("executing kernel\n");
 
     timer_start(1);
 
     // Execute the kernel
     clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL, global, local, 0, NULL, NULL);
 
-    //debug
-    printf("kernel executed\n");
 
     // Wait until the kernel command completes 
     // (no need to wait because the command_queue is an in-order queue)
