@@ -38,9 +38,6 @@ int main(int argc, char** argv)
     sizeA = SIZE * SIZE * sizeof(float);
     sizeB = SIZE * SIZE * sizeof(float);
     sizeC = SIZE * SIZE * sizeof(float);
-    hostA = malloc(sizeA);
-    hostB = malloc(sizeB);
-    hostC = malloc(sizeC);
 
     for( i = 0; i < SIZE; i++ )
     {
