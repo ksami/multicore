@@ -6,41 +6,51 @@
 #include <string.h>
 #include "timers.h"
 
-#define SIZE (11500 * 11500)
+#define SIZE 11500
 // Kernel source code
 const char* kernel_src = 
-"__kernel void vec_add(__global const float* A, " 
-"__global const float* B, "
-"__global float* C) {"
-" int id = get_global_id(0);"
-" C[id] = A[id] + B[id];"
+"__kernel void mat_mul(__global const int size,"
+"__global const float** A, " 
+"__global const float** B, "
+"__global float** C) {"
+"  int k;"
+"  int id = get_global_id(0);"
+"  int i = id/size;"
+"  int j = id%size;"
+"  for( k = 0; k < size; k++ ) {"
+"    C[i][j] += A[i][k] * B[k][j];"
+"  }"
 "}";
 
 
 int main(int argc, char** argv)
 {
-    int i;
+    int i, j, k = 1;
 
     timer_init();
 
     // Vector Initialization //
-    float* hostA;
-    float* hostB;
-    float* hostC;
+    float hostA[SIZE][SIZE];
+    float hostB[SIZE][SIZE];
+    float hostC[SIZE][SIZE];
     size_t sizeA, sizeB, sizeC;
 
-    sizeA = SIZE * sizeof(float);
-    sizeB = SIZE * sizeof(float);
-    sizeC = SIZE * sizeof(float);
-    hostA = (float*) malloc(sizeA);
-    hostB = (float*) malloc(sizeB);
-    hostC = (float*) malloc(sizeC);
+    sizeA = SIZE * SIZE * sizeof(float);
+    sizeB = SIZE * SIZE * sizeof(float);
+    sizeC = SIZE * SIZE * sizeof(float);
+    hostA = (float**) malloc(sizeA);
+    hostB = (float**) malloc(sizeB);
+    hostC = (float**) malloc(sizeC);
 
-    for (i = 0; i < SIZE; i++) {
-        hostA[i] = (float) i;
-        hostB[i] = (float) i * 2;
+    for( i = 0; i < SIZE; i++ )
+    {
+        for( j = 0; j < SIZE; j++ )
+        {
+            hostA[i][j] = k;
+            hostB[i][j] = k;
+            k++;
+        }
     }
-
 
     // OpenCL //
     // Obtain a list of available OpenCL platforms
@@ -82,13 +92,14 @@ int main(int argc, char** argv)
 
     // Create a kernel object from the program
     cl_kernel kernel;
-    kernel = clCreateKernel(program, "vec_add", NULL);
+    kernel = clCreateKernel(program, "mat_mul", NULL);
 
 
     // Set the arguments of the kernel
-    clSetKernelArg(kernel, 0, sizeof(cl_mem), (void*) &bufferA);
-    clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*) &bufferB);
-    clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*) &bufferC);
+    clSetKernelArg(kernel, 0, sizeof(int), (void*) SIZE);
+    clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*) &bufferA);
+    clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*) &bufferB);
+    clSetKernelArg(kernel, 3, sizeof(cl_mem), (void*) &bufferC);
 
     // Copy the input vectors to the corresponding buffers
     clEnqueueWriteBuffer(command_queue, bufferA, CL_FALSE, 0, sizeA, hostA, 0, NULL, NULL);

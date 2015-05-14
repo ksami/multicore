@@ -45,3 +45,9 @@ Matrix size can be changed with #define SIZE in line 9.
   32   | 0.204242
   16   | 0.243991
    8   | 0.255255
+
+
+
+
+### 2
+data_n >> class_n so parallelize the for loops with data_n instead
