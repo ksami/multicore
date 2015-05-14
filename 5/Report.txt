@@ -5,3 +5,23 @@ Ang Wei Xiang Kenneth
 2015-81466
 
 ### 1
+CPU: 0.715152 sec
+GPU: 0.243991 sec
+
+CL_DEVICE_TYPE_CPU specified to use the CPU and CL_DEVICE_TYPE_GPU specified to use the GPU when obtaining device IDs.
+
+Matrix size can be changed with the #define SIZE at line 9.
+
+on CPU:
+ Local | Time
+-----------------
+  32   | 0.456777
+  16   | 0.715152
+   8   | 0.738789
+
+on GPU:
+ Local | Time
+-----------------
+  32   | 0.204242
+  16   | 0.243991
+   8   | 0.255255
