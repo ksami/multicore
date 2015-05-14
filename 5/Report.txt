@@ -5,22 +5,42 @@ Ang Wei Xiang Kenneth
 2015-81466
 
 ### 1
+Size is 11500 * 11500 to prevent integer overflow in size_t
+
 CPU: 0.715152 sec
 GPU: 0.243991 sec
 
 CL_DEVICE_TYPE_CPU specified to use the CPU and CL_DEVICE_TYPE_GPU specified to use the GPU when obtaining device IDs.
 
-Matrix size can be changed with the #define SIZE at line 9.
+Matrix size can be changed with #define SIZE in line 9.
 
-on CPU:
- Local | Time
+#### CPU
+
+    Global     |  Time
+-------------------------
+ 10000 * 10000 | 0.633509
+  5000 * 5000  | 0.510243
+  1000 * 1000  | 0.480991
+
+
+ Local |  Time
 -----------------
   32   | 0.456777
   16   | 0.715152
    8   | 0.738789
 
-on GPU:
- Local | Time
+
+
+#### GPU
+
+    Global     |  Time
+-------------------------
+ 10000 * 10000 | 0.213568
+  5000 * 5000  | 0.211071
+  1000 * 1000  | 0.195847
+
+
+ Local |  Time
 -----------------
   32   | 0.204242
   16   | 0.243991
