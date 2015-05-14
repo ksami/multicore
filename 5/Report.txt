@@ -8,7 +8,7 @@ Ang Wei Xiang Kenneth
 Size is 11500 * 11500 to prevent integer overflow in size_t
 
 CPU: 0.715152 sec
-GPU: 0.243991 sec
+GPU: 0.210925 sec
 
 CL_DEVICE_TYPE_CPU specified to use the CPU and CL_DEVICE_TYPE_GPU specified to use the GPU when obtaining device IDs.
 
@@ -42,12 +42,13 @@ Matrix size can be changed with #define SIZE in line 9.
 
  Local |  Time
 -----------------
-  32   | 0.204242
-  16   | 0.243991
-   8   | 0.255255
+  32   | 0.222173
+  16   | 0.210925
+   8   | 0.224673
 
 
 
 
 ### 2
 data_n >> class_n so parallelize the for loops with data_n instead
+1st assignment step double for loop O(data_n * class_n)
