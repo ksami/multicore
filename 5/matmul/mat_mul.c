@@ -118,7 +118,7 @@ int main(int argc, char** argv)
 
     // The kernel index space is one dimensional
     // Specify the number of total work-items in the index space
-    size_t global[1] = { SIZE };
+    size_t global[1] = { SIZE*SIZE };
     // Specify the number of total work-items in a work-group
     size_t local[1] = { 8 };
 
