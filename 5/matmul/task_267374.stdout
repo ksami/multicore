@@ -1,0 +1,13 @@
+main init
+int declare
+time init
+size declared
+vec init
+buf alloc
+prog create
+prog build
+kernel create
+arg set
+executing kernel
+kernel executed
+Time elapsed : 0.211918 sec
