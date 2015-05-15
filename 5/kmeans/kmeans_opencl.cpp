@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <float.h>
 #include <CL/cl.h>
+#include <string.h>
 
 // Kernel source code
 const char* kernel_src =
