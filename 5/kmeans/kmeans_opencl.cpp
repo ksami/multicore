@@ -150,10 +150,14 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
         printf("%d\n",x++); //debug
 
         // Sum up and count data for each class
-        for (data_i = 0; data_i < data_n; data_i++) {         
+        for (data_i = 0; data_i < data_n; data_i++) {
+            printf("%d,",data_i); //debug         
             centroids[partitioned[data_i]].x += data[data_i].x;
+            printf("%d,",data_i); //debug         
             centroids[partitioned[data_i]].y += data[data_i].y;
+            printf("%d,",data_i); //debug         
             count[partitioned[data_i]]++;
+            printf("%d\n",data_i); //debug         
         }
         printf("%d\n",x++); //debug
 
