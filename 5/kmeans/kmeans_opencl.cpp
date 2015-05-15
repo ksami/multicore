@@ -10,7 +10,7 @@
 
 
 
-
+/*
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
@@ -23,7 +23,7 @@
 #include <ucontext.h>
 #include <unistd.h>
 
-/* This structure mirrors the one found in /usr/include/asm/ucontext.h */
+// This structure mirrors the one found in /usr/include/asm/ucontext.h //
 typedef struct _sig_ucontext {
  unsigned long     uc_flags;
  struct ucontext   *uc_link;
@@ -42,7 +42,7 @@ void crit_err_hdlr(int sig_num, siginfo_t * info, void * ucontext)
 
  uc = (sig_ucontext_t *)ucontext;
 
- /* Get the address at the time the signal was raised */
+ // Get the address at the time the signal was raised //
 #if defined(__i386__) // gcc specific
  caller_address = (void *) uc->uc_mcontext.eip; // EIP: x86 specific
 #elif defined(__x86_64__) // gcc specific
@@ -57,12 +57,12 @@ void crit_err_hdlr(int sig_num, siginfo_t * info, void * ucontext)
 
  size = backtrace(array, 50);
 
- /* overwrite sigaction with caller's address */
+ // overwrite sigaction with caller's address //
  array[1] = caller_address;
 
  messages = backtrace_symbols(array, size);
 
- /* skip first stack frame (points here) */
+ // skip first stack frame (points here) //
  for (i = 1; i < size && messages != NULL; ++i)
  {
   fprintf(stderr, "[bt]: (%d) %s\n", i, messages[i]);
@@ -72,7 +72,7 @@ void crit_err_hdlr(int sig_num, siginfo_t * info, void * ucontext)
 
  exit(EXIT_FAILURE);
 }
-
+*/
 
 
 
@@ -107,6 +107,7 @@ const char* kernel_src =
 
 void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* data, int* partitioned)
 {
+    /*
     struct sigaction sigact;
 
     sigact.sa_sigaction = crit_err_hdlr;
@@ -119,7 +120,7 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
 
      exit(EXIT_FAILURE);
     }
-
+    */
 
 
     int x=0; //debug
