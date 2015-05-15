@@ -35,6 +35,14 @@ const char* kernel_src =
 void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* data, int* partitioned)
 {
     // OpenCL //
+    
+    // The kernel index space is one dimensional
+    // Specify the number of total work-items in the index space
+    size_t global[1] = { data_n };
+    // Specify the number of total work-items in a work-group
+    size_t local[1] = { 16 };
+
+
     // Obtain a list of available OpenCL platforms
     cl_platform_id platform;
     clGetPlatformIDs(1, &platform, NULL);
@@ -68,42 +76,59 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
     bufferCentroids = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeCentroids, NULL, NULL);
     bufferPartitioned = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizePartitioned, NULL, NULL);
 
-    
+
+    // Create an OpenCL program object for the context 
+    // and load the kernel source into the program object
+    cl_program program;
+    size_t kernel_src_len = strlen(kernel_src);
+    program = clCreateProgramWithSource(context, 1, (const char**) &kernel_src, &kernel_src_len, NULL);
+
+    // Build (compile and link) the program executable 
+    // from the source or binary for the device
+    clBuildProgram(program, 1, &device, NULL, NULL, NULL);
+
+    // Create a kernel object from the program
+    cl_kernel kernel;
+    kernel = clCreateKernel(program, "assign", NULL);
+
+
+    // Set the arguments of the kernel
+    clSetKernelArg(kernel, 0, sizeof(int), (void*) class_n);
+    clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*) &bufferData);
+    clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*) &bufferCentroids);
+    clSetKernelArg(kernel, 3, sizeof(cl_mem), (void*) &bufferPartitioned);
+
+    // Copy the input vectors to the corresponding buffers
+    clEnqueueWriteBuffer(command_queue, bufferData, CL_FALSE, 0, sizeData, data, 0, NULL, NULL);
 
 
 
-
-
-
+    // Algorithm //
 
     
     // Loop indices for iteration, data and class
     int i, data_i, class_i;
     // Count number of data in each class
     int* count = (int*)malloc(sizeof(int) * class_n);
-    // Temporal point value to calculate distance
-    Point t;
 
 
     // Iterate through number of interations
     for (i = 0; i < iteration_n; i++) {
 
         // Assignment step
-        for (data_i = 0; data_i < data_n; data_i++) {
-            float min_dist = DBL_MAX;
-      
-            for (class_i = 0; class_i < class_n; class_i++) {
-                t.x = data[data_i].x - centroids[class_i].x;
-                t.y = data[data_i].y - centroids[class_i].y;
+        
+        // Copy the input vectors to the corresponding buffers
+        clEnqueueWriteBuffer(command_queue, bufferCentroids, CL_FALSE, 0, sizeCentroids, centroids, 0, NULL, NULL);
 
-                float dist = t.x * t.x + t.y * t.y;
-    
-                if (dist < min_dist) {
-                    partitioned[data_i] = class_i;
-                    min_dist = dist;
-                }
-            }
-        }
+        // Execute the kernel
+        clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL, global, local, 0, NULL, NULL);
+
+        // Wait until the kernel command completes 
+        clFinish(command_queue);
+
+        // Copy the result from bufferPartitioned to partitioned
+        clEnqueueReadBuffer(command_queue, bufferPartitioned, CL_TRUE, 0, sizePartitioned, partitioned, 0, NULL, NULL);
+
 
         // Update step
         // Clear sum buffer and class count
