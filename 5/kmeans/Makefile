@@ -3,13 +3,13 @@ CXX=g++
 CXXFLAGS=-Wall
 
 
-LIBS = -lrt -lOpenCL
+LIBS = -lrt
 LDFLAGS = ${LIBS}
 
 
-all: seq pthread
+all: seq pthread opencl
 
-.PHONY: all seq pthread clean test
+.PHONY: all seq pthread opencl clean test
 
 
 seq: kmeans_seq
@@ -22,6 +22,13 @@ pthread: kmeans_pthread
 
 kmeans_pthread: kmeans_pthread.o kmeans_main.o
 	${CXX} $^ -o $@ ${LDFLAGS} -lpthread
+
+
+opencl: kmeans_opencl
+
+kmeans_opencl: kmeans_opencl.o kmeans_main.o
+	${CXX} $^ -o $@ ${LDFLAGS} -lOpenCL
+
 
 run_all:
 	./gen_data.py centroid 64 centroid.point
@@ -46,4 +53,4 @@ run:
 	
 
 clean:
-	rm -f kmeans_seq kmeans_pthread kmeans_main.o kmeans_seq.o kmeans_pthread.o centroid.point data.point final_centroid.point result.class task*
+	rm -f kmeans_seq kmeans_pthread kmeans_opencl kmeans_main.o kmeans_seq.o kmeans_pthread.o kmeans_opencl.o centroid.point data.point final_centroid.point result.class task*
