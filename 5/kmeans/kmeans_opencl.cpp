@@ -5,6 +5,7 @@
 #include <float.h>
 #include <CL/cl.h>
 #include <string.h>
+#include <stdio.h>
 
 // Kernel source code
 const char* kernel_src =
@@ -36,6 +37,7 @@ const char* kernel_src =
 
 void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* data, int* partitioned)
 {
+    int x=0; //debug
     // OpenCL //
     
     // The kernel index space is one dimensional
@@ -57,6 +59,7 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
     cl_context context;
     context = clCreateContext(0, 1, &device, NULL, NULL, NULL);
 
+    printf("%d\n",x++); //debug
 
     // Create a command queue and attach it to the compute device
     // (in-order queue)
@@ -78,6 +81,7 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
     bufferCentroids = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeCentroids, NULL, NULL);
     bufferPartitioned = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizePartitioned, NULL, NULL);
 
+    printf("%d\n",x++); //debug
 
     // Create an OpenCL program object for the context 
     // and load the kernel source into the program object
@@ -92,18 +96,22 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
     // Create a kernel object from the program
     cl_kernel kernel;
     kernel = clCreateKernel(program, "assign", NULL);
-
+    
+    printf("%d\n",x++); //debug
+    
 
     // Set the arguments of the kernel
     clSetKernelArg(kernel, 0, sizeof(int), (void*) class_n);
     clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*) &bufferData);
     clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*) &bufferCentroids);
     clSetKernelArg(kernel, 3, sizeof(cl_mem), (void*) &bufferPartitioned);
-
+    printf("%d\n",x++); //debug
+    
     // Copy the input vectors to the corresponding buffers
     clEnqueueWriteBuffer(command_queue, bufferData, CL_FALSE, 0, sizeData, data, 0, NULL, NULL);
 
-
+    printf("%d\n",x++); //debug
+    
 
     // Algorithm //
 
@@ -116,11 +124,13 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
 
     // Iterate through number of interations
     for (i = 0; i < iteration_n; i++) {
-
+        printf("iteration %d\n",i); //debug
+        
         // Assignment step
         
         // Copy the input vectors to the corresponding buffers
         clEnqueueWriteBuffer(command_queue, bufferCentroids, CL_FALSE, 0, sizeCentroids, centroids, 0, NULL, NULL);
+        printf("%d\n",x++); //debug
 
         // Execute the kernel
         clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL, global, local, 0, NULL, NULL);
