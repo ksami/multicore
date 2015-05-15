@@ -3,7 +3,7 @@ CXX=g++
 CXXFLAGS=-Wall
 
 
-LIBS = -lrt
+LIBS = -lrt -lOpenCL
 LDFLAGS = ${LIBS}
 
 
@@ -34,10 +34,15 @@ run_seq:
 	./gen_data.py data 65536 data.point 64
 	thorq --add kmeans_seq centroid.point data.point result_seq.class final_centroid_seq.point 1024
 
+run_cpu:
+	./gen_data.py centroid 64 centroid.point
+	./gen_data.py data 65536 data.point 64
+	thorq --add kmeans_opencl centroid.point data.point result_par.class final_centroid_par.point 1024
+
 run:
 	./gen_data.py centroid 64 centroid.point
 	./gen_data.py data 65536 data.point 64
-	thorq --add kmeans_pthread centroid.point data.point result_par.class final_centroid_par.point 1024
+	thorq --add --device gpu kmeans_opencl centroid.point data.point result_par.class final_centroid_par.point 1024
 	
 
 clean:
