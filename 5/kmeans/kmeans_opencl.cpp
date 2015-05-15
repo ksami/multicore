@@ -6,6 +6,9 @@
 #include <CL/cl.h>
 #include <string.h>
 #include <stdio.h>
+#include <execinfo.h>
+#include <signal.h>
+#include <unistd.h>
 
 // Kernel source code
 const char* kernel_src =
@@ -34,10 +37,23 @@ const char* kernel_src =
 "}";
 
 
+void handler(int sig) {
+  void *array[10];
+  size_t size;
+
+  // get void*'s for all entries on the stack
+  size = backtrace(array, 10);
+
+  // print out all the frames to stderr
+  fprintf(stderr, "Error: signal %d:\n", sig);
+  backtrace_symbols_fd(array, size, STDERR_FILENO);
+  exit(1);
+}
 
 void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* data, int* partitioned)
 {
     int x=0; //debug
+    signal(SIGSEGV, handler);   // install our handler
     // OpenCL //
     
     // The kernel index space is one dimensional
@@ -124,7 +140,7 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
         // Assignment step
         
         // Copy the input vectors to the corresponding buffers
-        clEnqueueWriteBuffer(command_queue, bufferCentroids, CL_FALSE, 0, sizeCentroids, centroids, 0, NULL, NULL);
+        clEnqueueWriteBuffer(command_queue, bufferCentroids, CL_TRUE, 0, sizeCentroids, centroids, 0, NULL, NULL);
         printf("%d\n",x++); //debug
 
         // Execute the kernel
