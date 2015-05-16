@@ -171,11 +171,14 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
     // and load the kernel source into the program object
     cl_program program;
     size_t kernel_src_len = strlen(kernel_src);
-    program = clCreateProgramWithSource(context, 1, (const char**) &kernel_src, &kernel_src_len, NULL);
+    program = clCreateProgramWithSource(context, 1, (const char**) &kernel_src, &kernel_src_len, &result);
+    if(result!=CL_SUCCESS) printf("prog err: %d\n",result);
 
     // Build (compile and link) the program executable 
     // from the source or binary for the device
-    clBuildProgram(program, 1, &device, NULL, NULL, NULL);
+    result = clBuildProgram(program, 1, &device, NULL, NULL, NULL);
+    if(result!=CL_SUCCESS) printf("build err: %d\n",result);
+
 
     // Create a kernel object from the program
     cl_kernel kernel;
