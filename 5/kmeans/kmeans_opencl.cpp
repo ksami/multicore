@@ -80,6 +80,11 @@ void crit_err_hdlr(int sig_num, siginfo_t * info, void * ucontext)
 
 // Kernel source code
 const char* kernel_src =
+"typedef struct {"
+"    int x;"
+"    int y;"
+"} Point;"
+""
 "__kernel void assign("
 "__global const int class_n,"
 "__global const Point* data,"
