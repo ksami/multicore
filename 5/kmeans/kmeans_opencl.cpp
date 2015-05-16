@@ -179,7 +179,8 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
 
     // Create a kernel object from the program
     cl_kernel kernel;
-    kernel = clCreateKernel(program, "assign", NULL);
+    kernel = clCreateKernel(program, "assign", &result);
+    if(result!=CL_SUCCESS) printf("kern err: %d\n",result);
         
 
     // Set the arguments of the kernel
