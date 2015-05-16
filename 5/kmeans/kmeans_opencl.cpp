@@ -122,7 +122,7 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
     }
     */
 
-
+    cl_int result;
     int x=0; //debug
     // OpenCL //
     
@@ -210,28 +210,34 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
         // Assignment step
         
         // Copy the input vectors to the corresponding buffers
-        clEnqueueWriteBuffer(command_queue, bufferCentroids, CL_TRUE, 0, sizeCentroids, centroids, 0, NULL, NULL);
+        result = clEnqueueWriteBuffer(command_queue, bufferCentroids, CL_TRUE, 0, sizeCentroids, centroids, 0, NULL, NULL);
         printf("%d\n",x++); //debug
+        if(result != CL_SUCCESS) printf("err: %d",result);
 
         // Wait until the kernel command completes 
-        clFinish(command_queue);
+        result = clFinish(command_queue);
         printf("%d\n",x++); //debug
+        if(result != CL_SUCCESS) printf("err: %d",result);
 
         // Execute the kernel
-        clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL, global, local, 0, NULL, NULL);
+        result = clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL, global, local, 0, NULL, NULL);
         printf("%d\n",x++); //debug
+        if(result != CL_SUCCESS) printf("err: %d",result);
 
         // Wait until the kernel command completes 
-        clFinish(command_queue);
+        result = clFinish(command_queue);
         printf("%d\n",x++); //debug
+        if(result != CL_SUCCESS) printf("err: %d",result);
 
         // Copy the result from bufferPartitioned to partitioned
-        clEnqueueReadBuffer(command_queue, bufferPartitioned, CL_TRUE, 0, sizePartitioned, partitioned, 0, NULL, NULL);
+        result = clEnqueueReadBuffer(command_queue, bufferPartitioned, CL_TRUE, 0, sizePartitioned, partitioned, 0, NULL, NULL);
         printf("%d\n",x++); //debug
+        if(result != CL_SUCCESS) printf("err: %d",result);
 
         // Wait until the kernel command completes 
-        clFinish(command_queue);
+        result = clFinish(command_queue);
         printf("%d\n",x++); //debug
+        if(result != CL_SUCCESS) printf("err: %d",result);
 
         // Update step
         // Clear sum buffer and class count
