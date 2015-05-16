@@ -190,7 +190,6 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
     
     // Copy the input vectors to the corresponding buffers
     clEnqueueWriteBuffer(command_queue, bufferData, CL_FALSE, 0, sizeData, data, 0, NULL, NULL);
-    clEnqueueWriteBuffer(command_queue, bufferCentroids, CL_TRUE, 0, sizeCentroids, centroids, 0, NULL, NULL);
 
 
     
@@ -210,6 +209,13 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
         
         // Assignment step
         
+        // Copy the input vectors to the corresponding buffers
+        clEnqueueWriteBuffer(command_queue, bufferCentroids, CL_TRUE, 0, sizeCentroids, centroids, 0, NULL, NULL);
+        printf("%d\n",x++); //debug
+
+        // Wait until the kernel command completes 
+        clFinish(command_queue);
+        printf("%d\n",x++); //debug
         // Execute the kernel
         clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL, global, local, 0, NULL, NULL);
         printf("%d\n",x++); //debug
@@ -250,9 +256,6 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
         }
         printf("%d\n",x++); //debug
 
-        // Copy the input vectors to the corresponding buffers
-        clEnqueueWriteBuffer(command_queue, bufferCentroids, CL_TRUE, 0, sizeCentroids, centroids, 0, NULL, NULL);
-        printf("%d\n",x++); //debug
     }
 }
 
