@@ -86,7 +86,7 @@ const char* kernel_src =
 "} Point;"
 ""
 "__kernel void assign("
-"__global const int class_n,"
+"const int class_n,"
 "__global const Point* data,"
 "__global const Point* centroids,"
 "__global int* partitioned) {"
