@@ -126,6 +126,7 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
      exit(EXIT_FAILURE);
     }
     */
+    printf("%d\n",x++); //debug
 
     cl_int result;
     int x=0; //debug
@@ -137,6 +138,7 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
     // Specify the number of total work-items in a work-group
     size_t local[1] = { 16 };
 
+    printf("%d\n",x++); //debug
 
     // Obtain a list of available OpenCL platforms
     cl_platform_id platform;
@@ -150,11 +152,13 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
     cl_context context;
     context = clCreateContext(0, 1, &device, NULL, NULL, NULL);
 
+    printf("%d\n",x++); //debug
 
     // Create a command queue and attach it to the compute device
     // (in-order queue)
     cl_command_queue command_queue;
     command_queue = clCreateCommandQueue(context, device, 0, NULL);
+    printf("%d\n",x++); //debug
 
 
     // Allocate buffer memory objects
@@ -170,6 +174,7 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
     bufferData = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeData, NULL, NULL);
     bufferCentroids = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeCentroids, NULL, NULL);
     bufferPartitioned = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizePartitioned, NULL, NULL);
+    printf("%d\n",x++); //debug
 
 
     // Create an OpenCL program object for the context 
