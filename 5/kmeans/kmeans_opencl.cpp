@@ -177,8 +177,33 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
     // Build (compile and link) the program executable 
     // from the source or binary for the device
     result = clBuildProgram(program, 1, &device, NULL, NULL, NULL);
-    if(result!=CL_SUCCESS) printf("build err: %d\n",result);
+    if (err != CL_SUCCESS) {
+        char *buff_erro;
+        cl_int errcode;
+        size_t build_log_len;
+        errcode = clGetProgramBuildInfo(program, devices[0], CL_PROGRAM_BUILD_LOG, 0, NULL, &build_log_len);
+        if (errcode) {
+            printf("clGetProgramBuildInfo failed at line %d\n", __LINE__);
+            exit(-1);
+        }
 
+        buff_erro = malloc(build_log_len);
+        if (!buff_erro) {
+            printf("malloc failed at line %d\n", __LINE__);
+            exit(-2);
+        }
+
+        errcode = clGetProgramBuildInfo(program, devices[0], CL_PROGRAM_BUILD_LOG, build_log_len, buff_erro, NULL);
+        if (errcode) {
+            printf("clGetProgramBuildInfo failed at line %d\n", __LINE__);
+            exit(-3);
+        }
+
+        fprintf(stderr,"Build log: \n%s\n", buff_erro); //Be careful with  the fprint
+        free(buff_erro);
+        fprintf(stderr,"clBuildProgram failed\n");
+        exit(EXIT_FAILURE);
+    }
 
     // Create a kernel object from the program
     cl_kernel kernel;
