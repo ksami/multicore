@@ -236,7 +236,7 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
             count[class_i] = 0;
         }
         printf("%d\n",x++); //debug
-
+/*
         // Sum up and count data for each class
         for (data_i = 0; data_i < data_n; data_i++) {
             printf("%d,",data_i); //debug         
@@ -248,14 +248,14 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
             printf("%d\n",data_i); //debug         
         }
         printf("%d\n",x++); //debug
-
+/*
         // Divide the sum with number of class for mean point
         for (class_i = 0; class_i < class_n; class_i++) {
             centroids[class_i].x /= count[class_i];
             centroids[class_i].y /= count[class_i];
         }
         printf("%d\n",x++); //debug
-
+*/
     }
 }
 
