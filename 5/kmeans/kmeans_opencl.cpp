@@ -86,7 +86,7 @@ const char* kernel_src =
 "} Point;"
 ""
 "__kernel void assign("
-"const int class_n,"
+"int class_n,"
 "__global const Point* data,"
 "__global const Point* centroids,"
 "__global int* partitioned) {"
@@ -126,10 +126,10 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
      exit(EXIT_FAILURE);
     }
     */
-    printf("%d\n",x++); //debug
 
     cl_int result;
     int x=0; //debug
+    printf("%d\n",x++); //debug
     // OpenCL //
     
     // The kernel index space is one dimensional
@@ -146,18 +146,22 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
 
     // Obtain the list of available devices on the OpenCL platform
     cl_device_id device;
-    clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 1, &device, NULL);
+    result = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 1, &device, NULL);
+    printf("device err: %d\n",result);
+
 
     // Create an OpenCL context on a GPU device
     cl_context context;
-    context = clCreateContext(0, 1, &device, NULL, NULL, NULL);
+    context = clCreateContext(0, 1, &device, NULL, NULL, &result);
+    printf("context err: %d\n",result);
 
     printf("%d\n",x++); //debug
 
     // Create a command queue and attach it to the compute device
     // (in-order queue)
     cl_command_queue command_queue;
-    command_queue = clCreateCommandQueue(context, device, 0, NULL);
+    command_queue = clCreateCommandQueue(context, device, 0, &result);
+    printf("queue err: %d\n",result);
     printf("%d\n",x++); //debug
 
 
@@ -171,9 +175,12 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
     sizeCentroids = class_n * sizeof(Point);
     sizePartitioned = data_n * sizeof(int);
 
-    bufferData = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeData, NULL, NULL);
-    bufferCentroids = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeCentroids, NULL, NULL);
-    bufferPartitioned = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizePartitioned, NULL, NULL);
+    bufferData = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeData, NULL, &result);
+    printf("bufferdata err: %d\n",result);
+    bufferCentroids = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeCentroids, NULL, &result);
+    printf("buffercentroids err: %d\n",result);
+    bufferPartitioned = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizePartitioned, NULL, &result);
+    printf("bufferpartitioned err: %d\n",result);
     printf("%d\n",x++); //debug
 
 
@@ -181,29 +188,32 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
     // and load the kernel source into the program object
     cl_program program;
     size_t kernel_src_len = strlen(kernel_src);
+    printf("kernstrlen\n"); //debug
     program = clCreateProgramWithSource(context, 1, (const char**) &kernel_src, &kernel_src_len, &result);
+    printf("create prog\n"); //debug
     if(result!=CL_SUCCESS) printf("prog err: %d\n",result);
 
     // Build (compile and link) the program executable 
     // from the source or binary for the device
     result = clBuildProgram(program, 1, &device, NULL, NULL, NULL);
-    if (err != CL_SUCCESS) {
+    printf("build prog\n"); //debug
+    if (result != CL_SUCCESS) {
         char *buff_erro;
         cl_int errcode;
         size_t build_log_len;
-        errcode = clGetProgramBuildInfo(program, devices[0], CL_PROGRAM_BUILD_LOG, 0, NULL, &build_log_len);
+        errcode = clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, 0, NULL, &build_log_len);
         if (errcode) {
             printf("clGetProgramBuildInfo failed at line %d\n", __LINE__);
             exit(-1);
         }
 
-        buff_erro = malloc(build_log_len);
+       buff_erro = (char*) malloc(build_log_len);
         if (!buff_erro) {
             printf("malloc failed at line %d\n", __LINE__);
             exit(-2);
         }
 
-        errcode = clGetProgramBuildInfo(program, devices[0], CL_PROGRAM_BUILD_LOG, build_log_len, buff_erro, NULL);
+        errcode = clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, build_log_len, buff_erro, NULL);
         if (errcode) {
             printf("clGetProgramBuildInfo failed at line %d\n", __LINE__);
             exit(-3);
@@ -218,17 +228,22 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
     // Create a kernel object from the program
     cl_kernel kernel;
     kernel = clCreateKernel(program, "assign", &result);
-    if(result!=CL_SUCCESS) printf("kern err: %d\n",result);
+    printf("kern err: %d\n",result);
+    printf("create kern\n"); //debug
         
 
     // Set the arguments of the kernel
-    clSetKernelArg(kernel, 0, sizeof(int), (void*) class_n);
+    result = clSetKernelArg(kernel, 0, sizeof(int), (void*) class_n);
+    printf("kern arg 0 set\n"); //debug
+    printf("kernarg0 err: %d\n",result);
     clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*) &bufferData);
     clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*) &bufferCentroids);
     clSetKernelArg(kernel, 3, sizeof(cl_mem), (void*) &bufferPartitioned);
     
+    printf("kern args set\n"); //debug
     // Copy the input vectors to the corresponding buffers
-    clEnqueueWriteBuffer(command_queue, bufferData, CL_FALSE, 0, sizeData, data, 0, NULL, NULL);
+    result = clEnqueueWriteBuffer(command_queue, bufferData, CL_FALSE, 0, sizeData, data, 0, NULL, NULL);
+    printf("enqueue err: %d\n",result);
 
 
     
