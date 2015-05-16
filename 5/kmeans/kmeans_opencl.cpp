@@ -86,12 +86,13 @@ const char* kernel_src =
 "} Point;"
 ""
 "__kernel void assign("
-"int class_n,"
+"int* pclass_n,"
 "__global const Point* data,"
 "__global const Point* centroids,"
 "__global int* partitioned) {"
 "    Point t;"
 "    int class_i;"
+"    int class_n = *pclass_n;"
 "    int data_i = get_global_id(0);"
 "    float dist;"
 "    float min_dist = DBL_MAX;"
@@ -233,7 +234,9 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
         
 
     // Set the arguments of the kernel
-    result = clSetKernelArg(kernel, 0, sizeof(int), (void*) class_n);
+    int* pclass_n = NULL;
+    *pclass_n = class_n;
+    result = clSetKernelArg(kernel, 0, sizeof(int*), (void*) &pclass_n);
     printf("kern arg 0 set\n"); //debug
     printf("kernarg0 err: %d\n",result);
     clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*) &bufferData);

@@ -13,7 +13,7 @@ const char* kernel_src =
 "__global const float** A, " 
 "__global const float** B, "
 "__global float** C,"
-"__gloabl const int size) {"
+"__global const int size) {"
 "  int k;"
 "  int id = get_global_id(0);"
 "  int i = id/size;"
