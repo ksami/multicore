@@ -86,7 +86,7 @@ const char* kernel_src =
 "} Point;"
 ""
 "__kernel void assign("
-"__global const int* class_n,"
+"const int class_n,"
 "__global const Point* data,"
 "__global const Point* centroids,"
 "__global int* partitioned) {"
@@ -96,7 +96,7 @@ const char* kernel_src =
 "    float dist;"
 "    float min_dist = DBL_MAX;"
 ""
-"    for (class_i = 0; class_i < *class_n; class_i++) {"
+"    for (class_i = 0; class_i < class_n; class_i++) {"
 "        t.x = data[data_i].x - centroids[class_i].x;"
 "        t.y = data[data_i].y - centroids[class_i].y;"
 ""
@@ -182,23 +182,23 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
     // Build (compile and link) the program executable 
     // from the source or binary for the device
     result = clBuildProgram(program, 1, &device, NULL, NULL, NULL);
-    if (result != CL_SUCCESS) {
+    if (err != CL_SUCCESS) {
         char *buff_erro;
         cl_int errcode;
         size_t build_log_len;
-        errcode = clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, 0, NULL, &build_log_len);
+        errcode = clGetProgramBuildInfo(program, devices[0], CL_PROGRAM_BUILD_LOG, 0, NULL, &build_log_len);
         if (errcode) {
             printf("clGetProgramBuildInfo failed at line %d\n", __LINE__);
             exit(-1);
         }
 
-        buff_erro = (char*) malloc(build_log_len);
+        buff_erro = malloc(build_log_len);
         if (!buff_erro) {
             printf("malloc failed at line %d\n", __LINE__);
             exit(-2);
         }
 
-        errcode = clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, build_log_len, buff_erro, NULL);
+        errcode = clGetProgramBuildInfo(program, devices[0], CL_PROGRAM_BUILD_LOG, build_log_len, buff_erro, NULL);
         if (errcode) {
             printf("clGetProgramBuildInfo failed at line %d\n", __LINE__);
             exit(-3);
@@ -217,7 +217,7 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
         
 
     // Set the arguments of the kernel
-    clSetKernelArg(kernel, 0, sizeof(int), (void*) &class_n);
+    clSetKernelArg(kernel, 0, sizeof(int), (void*) class_n);
     clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*) &bufferData);
     clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*) &bufferCentroids);
     clSetKernelArg(kernel, 3, sizeof(cl_mem), (void*) &bufferPartitioned);
