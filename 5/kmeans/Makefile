@@ -42,13 +42,13 @@ run_seq:
 	thorq --add kmeans_seq centroid.point data.point result_seq.class final_centroid_seq.point 1024
 
 run_cpu:
-	./gen_data.py centroid 64 centroid.point
-	./gen_data.py data 65536 data.point 64
+	./gen_data.py centroid 16 centroid.point
+	./gen_data.py data 1048576 data.point 16
 	thorq --add kmeans_opencl centroid.point data.point result_par.class final_centroid_par.point 1024
 
 run:
-	./gen_data.py centroid 64 centroid.point
-	./gen_data.py data 65536 data.point 64
+	./gen_data.py centroid 16 centroid.point
+	./gen_data.py data 1048576 data.point 16
 	thorq --add --device gpu kmeans_opencl centroid.point data.point result_par.class final_centroid_par.point 1024
 	
 
