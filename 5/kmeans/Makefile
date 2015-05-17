@@ -27,7 +27,7 @@ kmeans_pthread: kmeans_pthread.o kmeans_main.o
 opencl: kmeans_opencl
 
 kmeans_opencl: kmeans_opencl.o kmeans_main.o
-	${CXX} -g -rdynamic $^ -o $@ ${LDFLAGS} -lOpenCL
+	${CXX} $^ -o $@ ${LDFLAGS} -lOpenCL
 
 
 run_all:
