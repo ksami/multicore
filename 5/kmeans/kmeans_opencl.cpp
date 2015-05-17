@@ -89,16 +89,15 @@ const char* kernel_src =
 
 "__global const Point* data,"
 "__global const Point* centroids,"
-"__global int* partitioned,"
-"__global int* pclass_n) {"
+"__global int* partitioned) {"
 "    Point t;"
 "    int class_i;"
-"    int class_n = *pclass_n;"
+
 "    int data_i = get_global_id(0);"
 "    float dist;"
 "    float min_dist = DBL_MAX;"
 ""
-"    for (class_i = 0; class_i < class_n; class_i++) {"
+"    for (class_i = 0; class_i < 64; class_i++) {"
 "        t.x = data[data_i].x - centroids[class_i].x;"
 "        t.y = data[data_i].y - centroids[class_i].y;"
 ""
@@ -235,30 +234,19 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
         
 
     // Set the arguments of the kernel
-
-    cl_mem bufferClassn;    
-    size_t sizeClassn = sizeof(int);
-    bufferClassn = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeClassn, NULL, &result);
-    printf("buffer classn err: %d\n",result);
-
-
-
+    //int* pclass_n = NULL;
+    //*pclass_n = class_n;
+    //result = clSetKernelArg(kernel, 0, sizeof(int*), (void*) &pclass_n);
+    //printf("kern arg 0 set\n"); //debug
+    //printf("kernarg0 err: %d\n",result);
     clSetKernelArg(kernel, 0, sizeof(cl_mem), (void*) &bufferData);
     clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*) &bufferCentroids);
     clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*) &bufferPartitioned);
-    int* pclass_n = NULL;
-    *pclass_n = class_n;
-    clSetKernelArg(kernel, 3, sizeof(cl_mem), (void*) &bufferClassn);
-    //result = clSetKernelArg(kernel, 3, sizeof(int*), (void*) &pclass_n);
-    printf("kern arg 3 set\n"); //debug
-    printf("kernarg3 err: %d\n",result);
     
     printf("kern args set\n"); //debug
     // Copy the input vectors to the corresponding buffers
     result = clEnqueueWriteBuffer(command_queue, bufferData, CL_FALSE, 0, sizeData, data, 0, NULL, NULL);
     printf("enqueue err: %d\n",result);
-    result = clEnqueueWriteBuffer(command_queue, bufferClassn, CL_FALSE, 0, sizeClassn, pclass_n, 0, NULL, NULL);
-    printf("classn enqueue err: %d\n",result);
 
 
     
