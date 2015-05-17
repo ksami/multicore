@@ -74,12 +74,14 @@ void crit_err_hdlr(int sig_num, siginfo_t * info, void * ucontext)
 }
 */
 
-#define NUM_CENTROIDS 16
+
 
 
 
 // Kernel source code
 const char* kernel_src =
+"#define NUM_CENTROIDS 16"
+""
 "typedef struct {"
 "    int x;"
 "    int y;"
