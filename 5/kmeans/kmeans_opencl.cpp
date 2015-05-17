@@ -80,8 +80,6 @@ void crit_err_hdlr(int sig_num, siginfo_t * info, void * ucontext)
 
 // Kernel source code
 const char* kernel_src =
-"#define NUM_CENTROIDS 16"
-""
 "typedef struct {"
 "    int x;"
 "    int y;"
@@ -93,12 +91,12 @@ const char* kernel_src =
 "__global int* partitioned) {"
 "    Point t;"
 "    int class_i;"
-
+"    int class_n = 16;"
 "    int data_i = get_global_id(0);"
 "    float dist;"
 "    float min_dist = DBL_MAX;"
 ""
-"    for (class_i = 0; class_i < NUM_CENTROIDS; class_i++) {"
+"    for (class_i = 0; class_i < class_n; class_i++) {"
 "        t.x = data[data_i].x - centroids[class_i].x;"
 "        t.y = data[data_i].y - centroids[class_i].y;"
 ""
