@@ -130,7 +130,7 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
 
     cl_int result;
     int x=0; //debug
-    printf("%d\n",x++); //debug
+    //printf("%d\n",x++); //debug
     // OpenCL //
     
     // The kernel index space is one dimensional
@@ -139,7 +139,7 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
     // Specify the number of total work-items in a work-group
     size_t local[1] = { 16 };
 
-    printf("%d\n",x++); //debug
+    //printf("%d\n",x++); //debug
 
     // Obtain a list of available OpenCL platforms
     cl_platform_id platform;
@@ -148,22 +148,22 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
     // Obtain the list of available devices on the OpenCL platform
     cl_device_id device;
     result = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 1, &device, NULL);
-    printf("device err: %d\n",result);
+    //printf("device err: %d\n",result);
 
 
     // Create an OpenCL context on a GPU device
     cl_context context;
     context = clCreateContext(0, 1, &device, NULL, NULL, &result);
-    printf("context err: %d\n",result);
+    //printf("context err: %d\n",result);
 
-    printf("%d\n",x++); //debug
+    //printf("%d\n",x++); //debug
 
     // Create a command queue and attach it to the compute device
     // (in-order queue)
     cl_command_queue command_queue;
     command_queue = clCreateCommandQueue(context, device, 0, &result);
-    printf("queue err: %d\n",result);
-    printf("%d\n",x++); //debug
+    //printf("queue err: %d\n",result);
+    //printf("%d\n",x++); //debug
 
 
     // Allocate buffer memory objects
@@ -177,27 +177,27 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
     sizePartitioned = data_n * sizeof(int);
 
     bufferData = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeData, NULL, &result);
-    printf("bufferdata err: %d\n",result);
+    //printf("bufferdata err: %d\n",result);
     bufferCentroids = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeCentroids, NULL, &result);
-    printf("buffercentroids err: %d\n",result);
+    //printf("buffercentroids err: %d\n",result);
     bufferPartitioned = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizePartitioned, NULL, &result);
-    printf("bufferpartitioned err: %d\n",result);
-    printf("%d\n",x++); //debug
+    //printf("bufferpartitioned err: %d\n",result);
+    //printf("%d\n",x++); //debug
 
 
     // Create an OpenCL program object for the context 
     // and load the kernel source into the program object
     cl_program program;
     size_t kernel_src_len = strlen(kernel_src);
-    printf("kernstrlen\n"); //debug
+    //printf("kernstrlen\n"); //debug
     program = clCreateProgramWithSource(context, 1, (const char**) &kernel_src, &kernel_src_len, &result);
-    printf("create prog\n"); //debug
+    //printf("create prog\n"); //debug
     if(result!=CL_SUCCESS) printf("prog err: %d\n",result);
 
     // Build (compile and link) the program executable 
     // from the source or binary for the device
     result = clBuildProgram(program, 1, &device, NULL, NULL, NULL);
-    printf("build prog\n"); //debug
+    //printf("build prog\n"); //debug
     if (result != CL_SUCCESS) {
         char *buff_erro;
         cl_int errcode;
@@ -229,24 +229,24 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
     // Create a kernel object from the program
     cl_kernel kernel;
     kernel = clCreateKernel(program, "assign", &result);
-    printf("kern err: %d\n",result);
-    printf("create kern\n"); //debug
+    //printf("kern err: %d\n",result);
+    //printf("create kern\n"); //debug
         
 
     // Set the arguments of the kernel
     //int* pclass_n = NULL;
     //*pclass_n = class_n;
     //result = clSetKernelArg(kernel, 0, sizeof(int*), (void*) &pclass_n);
-    //printf("kern arg 0 set\n"); //debug
-    //printf("kernarg0 err: %d\n",result);
+    ////printf("kern arg 0 set\n"); //debug
+    ////printf("kernarg0 err: %d\n",result);
     clSetKernelArg(kernel, 0, sizeof(cl_mem), (void*) &bufferData);
     clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*) &bufferCentroids);
     clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*) &bufferPartitioned);
     
-    printf("kern args set\n"); //debug
+    //printf("kern args set\n"); //debug
     // Copy the input vectors to the corresponding buffers
     result = clEnqueueWriteBuffer(command_queue, bufferData, CL_FALSE, 0, sizeData, data, 0, NULL, NULL);
-    printf("enqueue err: %d\n",result);
+    //printf("enqueue err: %d\n",result);
 
 
     
@@ -262,38 +262,38 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
 
     // Iterate through number of interations
     for (i = 0; i < iteration_n; i++) {
-        printf("iteration %d\n",i); //debug
+        //printf("iteration %d\n",i); //debug
         
         // Assignment step
         
         // Copy the input vectors to the corresponding buffers
         result = clEnqueueWriteBuffer(command_queue, bufferCentroids, CL_TRUE, 0, sizeCentroids, centroids, 0, NULL, NULL);
-        printf("%d\n",x++); //debug
+        //printf("%d\n",x++); //debug
         if(result != CL_SUCCESS) printf("err: %d",result);
 
         // Wait until the kernel command completes 
         result = clFinish(command_queue);
-        printf("%d\n",x++); //debug
+        //printf("%d\n",x++); //debug
         if(result != CL_SUCCESS) printf("err: %d",result);
 
         // Execute the kernel
         result = clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL, global, local, 0, NULL, NULL);
-        printf("%d\n",x++); //debug
+        //printf("%d\n",x++); //debug
         if(result != CL_SUCCESS) printf("err: %d",result);
 
         // Wait until the kernel command completes 
         result = clFinish(command_queue);
-        printf("%d\n",x++); //debug
+        //printf("%d\n",x++); //debug
         if(result != CL_SUCCESS) printf("err: %d",result);
 
         // Copy the result from bufferPartitioned to partitioned
         result = clEnqueueReadBuffer(command_queue, bufferPartitioned, CL_TRUE, 0, sizePartitioned, partitioned, 0, NULL, NULL);
-        printf("%d\n",x++); //debug
+        //printf("%d\n",x++); //debug
         if(result != CL_SUCCESS) printf("err: %d",result);
 
         // Wait until the kernel command completes 
         result = clFinish(command_queue);
-        printf("%d\n",x++); //debug
+        //printf("%d\n",x++); //debug
         if(result != CL_SUCCESS) printf("err: %d",result);
 
         // Update step
@@ -303,26 +303,26 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
             centroids[class_i].y = 0.0;
             count[class_i] = 0;
         }
-        printf("%d\n",x++); //debug
+        //printf("%d\n",x++); //debug
 
         // Sum up and count data for each class
         for (data_i = 0; data_i < data_n; data_i++) {
-            printf("%d,",data_i); //debug         
+            //printf("%d,",data_i); //debug         
             centroids[partitioned[data_i]].x += data[data_i].x;
-            printf("%d,",data_i); //debug         
+            //printf("%d,",data_i); //debug         
             centroids[partitioned[data_i]].y += data[data_i].y;
-            printf("%d,",data_i); //debug         
+            //printf("%d,",data_i); //debug         
             count[partitioned[data_i]]++;
-            printf("%d\n",data_i); //debug         
+            //printf("%d\n",data_i); //debug         
         }
-        printf("%d\n",x++); //debug
+        //printf("%d\n",x++); //debug
 
         // Divide the sum with number of class for mean point
         for (class_i = 0; class_i < class_n; class_i++) {
             centroids[class_i].x /= count[class_i];
             centroids[class_i].y /= count[class_i];
         }
-        printf("%d\n",x++); //debug
+        //printf("%d\n",x++); //debug
 
     }
 }
