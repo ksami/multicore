@@ -235,12 +235,21 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
         
 
     // Set the arguments of the kernel
+
+    cl_mem bufferClassn;    
+    size_t sizeClassn = sizeof(int);
+    bufferClassn = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeClassn, NULL, &result);
+    printf("buffer classn err: %d\n",result);
+
+
+
     clSetKernelArg(kernel, 0, sizeof(cl_mem), (void*) &bufferData);
     clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*) &bufferCentroids);
     clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*) &bufferPartitioned);
     int* pclass_n = NULL;
     *pclass_n = class_n;
-    result = clSetKernelArg(kernel, 3, sizeof(int*), (void*) &pclass_n);
+    clSetKernelArg(kernel, 3, sizeof(cl_mem), (void*) &bufferClassn);
+    //result = clSetKernelArg(kernel, 3, sizeof(int*), (void*) &pclass_n);
     printf("kern arg 3 set\n"); //debug
     printf("kernarg3 err: %d\n",result);
     
@@ -248,6 +257,8 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
     // Copy the input vectors to the corresponding buffers
     result = clEnqueueWriteBuffer(command_queue, bufferData, CL_FALSE, 0, sizeData, data, 0, NULL, NULL);
     printf("enqueue err: %d\n",result);
+    result = clEnqueueWriteBuffer(command_queue, bufferClassn, CL_FALSE, 0, sizeClassn, pclass_n, 0, NULL, NULL);
+    printf("classn enqueue err: %d\n",result);
 
 
     
