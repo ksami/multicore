@@ -74,7 +74,7 @@ void crit_err_hdlr(int sig_num, siginfo_t * info, void * ucontext)
 }
 */
 
-
+#define NUM_CENTROIDS 16
 
 
 
@@ -86,7 +86,6 @@ const char* kernel_src =
 "} Point;"
 ""
 "__kernel void assign("
-
 "__global const Point* data,"
 "__global const Point* centroids,"
 "__global int* partitioned) {"
@@ -97,7 +96,7 @@ const char* kernel_src =
 "    float dist;"
 "    float min_dist = DBL_MAX;"
 ""
-"    for (class_i = 0; class_i < 64; class_i++) {"
+"    for (class_i = 0; class_i < NUM_CENTROIDS; class_i++) {"
 "        t.x = data[data_i].x - centroids[class_i].x;"
 "        t.y = data[data_i].y - centroids[class_i].y;"
 ""
