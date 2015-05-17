@@ -50,5 +50,40 @@ Matrix size can be changed with #define SIZE in line 9.
 
 
 ### 2
-data_n >> class_n so parallelize the for loops with data_n instead
-1st assignment step double for loop O(data_n * class_n)
+CPU: 21.103932874 sec
+GPU: 22.168334358 sec
+
+CL_DEVICE_TYPE_CPU specified to use the CPU and CL_DEVICE_TYPE_GPU specified to use the GPU when obtaining device IDs.
+
+#### CPU
+
+    Global     |  Time
+-------------------------
+    1048576    | 21.103932874
+    524288     | 16.992851428
+    262144     | 17.146073561
+
+
+ Local |  Time
+-----------------
+  32   | 19.012456180
+  16   | 21.103932874
+   8   | 20.753687573
+
+
+
+#### GPU
+
+    Global     |  Time
+-------------------------
+    1048576    | 22.168334358
+    524288     | 21.721929449
+    262144     | 21.426157397
+
+
+ Local |  Time
+-----------------
+  32   | 21.632110970
+  16   | 22.168334358
+   8   | 24.652960673
+
