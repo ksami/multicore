@@ -31,15 +31,15 @@ int main(int argc, char* argv[]) {
 
 
 
-    #pragma omp parallel num_threads(cnt_threads) shared(result)
+    #pragma omp parallel for num_threads(cnt_threads) shared(result) private(i, j, k)
     {
         for( i = 0; i < NDIM; i++ )
         {
             for( j = 0; j < NDIM; j++ )
             {
-                #pragma omp for
                 for( k = 0; k < NDIM; k++ )
                 {
+                    #pragma omp atomic update
                     result++;
                     // c[i][j] += a[i][k] * b[k][j];
                     //printf("id: %d\n", omp_get_thread_num());
