@@ -10,6 +10,11 @@ all: $(TARGET)
 $(TARGET):$(OBJS)
 	$(CC) $(LDFLAGS) $(OBJS) -o $@
 
+openmp: mat_mul_openmp
+
+mat_mul_openmp: mat_mul.o
+	$(CC) $^ -o $@ ${LDFLAGS}
+
 clean:
 	rm -rf $(TARGET) $(OBJS) task*
 
