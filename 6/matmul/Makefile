@@ -2,7 +2,7 @@ TARGET=mat_mul
 OBJS=mat_mul.o timers.o
 
 CC=gcc
-CFLAGS=-g -O2 -Wall
+CFLAGS=-g -Wall
 LDFLAGS=-fopenmp
 
 all: $(TARGET)
@@ -14,7 +14,7 @@ clean:
 	rm -rf $(TARGET) $(OBJS) task*
 
 run_cpu: $(TARGET)
-	thorq --add ./$(TARGET) -v
+	thorq --add ./$(TARGET) 32
 
 run: $(TARGET)
-	thorq --add --device gpu ./$(TARGET) -v
+	thorq --add --device gpu ./$(TARGET) 32
