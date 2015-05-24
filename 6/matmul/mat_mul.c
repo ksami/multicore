@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/time.h>
 #include "timers.h"
 
 #ifdef _OPENMP
@@ -12,13 +13,19 @@ float a[NDIM][NDIM];
 float b[NDIM][NDIM];
 float c[NDIM][NDIM];
 
+static inline double get_time()
+{
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  return (double)tv.tv_sec + (double)1.0e-6*tv.tv_usec;
+}
+
 
 int main(int argc, char* argv[]) {
     int i, j, k=1;
-    int result=0;
+    double start, end;
     int cnt_threads = strtol(argv[1], NULL, 10);
 
-    timer_init();
 
     for( i = 0; i < NDIM; i++ )
     {
@@ -30,7 +37,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    timer_start(1);
+    start = get_time();
 
     #pragma omp parallel num_threads(cnt_threads) shared(a, b, c) private(i, j, k)
     {
@@ -48,8 +55,9 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    timer_stop(1);
-    printf("Time elapsed : %lf sec\n", timer_read(1));
+    end = get_time();
+
+    printf("Time elapsed : %lf sec\n", end-start);
 
     return 0;
 }
