@@ -7,8 +7,8 @@
 
 void hello(void);
 
-void main(int argc, char* argv[]) {
-    int cnt_threads = strtol(arg[1], NULL, 10);
+int main(int argc, char* argv[]) {
+    int cnt_threads = strtol(argv[1], NULL, 10);
 
     #pragma omp parallel num_threads(cnt_threads)
     hello();
@@ -17,8 +17,10 @@ void main(int argc, char* argv[]) {
 }
 
 void hello(void) {
-    int my_id = omp_get_thread_num();
-    int num_threads = omp_get_num_threads();
+    int my_id, num_threads;
     
-    printf(“Hello world! %d %d\n”, my_id, num_threads);
+    my_id = omp_get_thread_num();
+    num_threads = omp_get_num_threads();
+    
+    printf("id: %d, num_threads: %d\n", my_id, num_threads);
 }
