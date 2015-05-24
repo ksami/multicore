@@ -6,7 +6,7 @@
     #include <omp.h>
 #endif
 
-#define NDIM 4
+#define NDIM 2
 
 // float a[NDIM][NDIM];
 // float b[NDIM][NDIM];
@@ -16,6 +16,7 @@
 
 int main(int argc, char* argv[]) {
     int i, j, k=1;
+    int result=0;
     int cnt_threads = strtol(argv[1], NULL, 10);
 
     // for( i = 0; i < NDIM; i++ )
@@ -30,21 +31,24 @@ int main(int argc, char* argv[]) {
 
 
 
-    #pragma omp parallel num_threads(cnt_threads)
+    #pragma omp parallel num_threads(cnt_threads) shared(result)
     {
-        #pragma omp for
-        // for( i = 0; i < NDIM; i++ )
-        // {
-        //     for( j = 0; j < NDIM; j++ )
-        //     {
+        for( i = 0; i < NDIM; i++ )
+        {
+            for( j = 0; j < NDIM; j++ )
+            {
+                #pragma omp for
                 for( k = 0; k < NDIM; k++ )
                 {
+                    result++;
                     // c[i][j] += a[i][k] * b[k][j];
-                    printf("id: %d\n", omp_get_thread_num());
+                    //printf("id: %d\n", omp_get_thread_num());
                 }
-        //     }
-        // }
+            }
+        }
     }
+
+    printf("result: %d\n", result);
 
     return 0;
 }
