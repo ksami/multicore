@@ -1,0 +1,23 @@
+1. HW # 4 using OpenMP given Matrix Multiplication code parallelization and measure the performance
+Please
+
+2. HW # 4 using OpenMP a given code in the K-means algorithm, and to measure the performance of parallelization
+Follow
+
+
+ 1, 2, submit all source code and report
+
+ Qn 1: Check which nested loop is best when parallelized using `#pragma omp for` and state in the report
+
+ Qn 1: OK to see how to use the OpenMP specification `#pragma omp collapse`, and use it for qn 1
+
+ Qn 1, 2: Use 1, 2, 4, 8, 16, 32 threads to measure the performance and state results in the report
+
+ Issue size can be modified as you wish during the experiment.
+For Qn 1: 4096 X 4096 Matrix Multiplication;
+For Qn 2: 65536 datapoint, 64 centroid, 1024 iterations for the k -means algorithm
+
+ All other OpenMP features used (barrier, reduction, atomic, etc.) must be specified in the report
+
+Deadline: May 27, 23:59
+How to submit: Submit a TA-mail (wookeun@aces.snu.ac.kr)
