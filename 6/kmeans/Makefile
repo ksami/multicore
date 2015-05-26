@@ -30,9 +30,9 @@ kmeans_opencl: kmeans_opencl.o kmeans_main.o
 	${CXX} $^ -o $@ ${LDFLAGS} -lOpenCL
 
 
-opencl: kmeans_openmp
+openmp: kmeans_openmp
 
-kmeans_opencl: kmeans_openmp.o kmeans_main.o
+kmeans_openmp: kmeans_openmp.o kmeans_main.o
 	${CXX} $^ -o $@ ${LDFLAGS} -fopenmp
 
 
