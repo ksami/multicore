@@ -39,16 +39,15 @@ int main(int argc, char* argv[]) {
 
     start = get_time();
 
-    #pragma omp parallel num_threads(cnt_threads) shared(a, b, c) private(i, j, k) collapse(3)
+    #pragma omp parallel num_threads(cnt_threads) shared(a, b, c) private(i, j, k)
     {
-        #pragma omp for
         for( i = 0; i < NDIM; i++ )
         {
             for( j = 0; j < NDIM; j++ )
             {
+        #pragma omp for nowait
                 for( k = 0; k < NDIM; k++ )
                 {
-                    #pragma omp atomic
                     c[i][j] += a[i][k] * b[k][j];
                 }
             }
