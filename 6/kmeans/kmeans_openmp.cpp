@@ -36,7 +36,6 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
                     float dist = t.x * t.x + t.y * t.y;
         
                     if (dist < min_dist) {
-                        #pragma omp atomic
                         partitioned[data_i] = class_i;
                         min_dist = dist;
                     }
