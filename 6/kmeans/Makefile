@@ -1,6 +1,6 @@
 
 CXX=g++
-CXXFLAGS=-Wall
+CXXFLAGS=-Wall -fopenmp
 
 
 LIBS = -lrt
