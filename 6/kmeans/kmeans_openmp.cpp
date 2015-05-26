@@ -8,7 +8,7 @@
     #include <omp.h>
 #endif
 
-#define CNT_THREADS 64
+#define CNT_THREADS 1
 
 
 void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* data, int* partitioned)
@@ -43,10 +43,10 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
                     }
                 }
             }
+        
 
             // Update step
             // Clear sum buffer and class count
-            #pragma omp for
             for (class_i = 0; class_i < class_n; class_i++) {
                 centroids[class_i].x = 0.0;
                 centroids[class_i].y = 0.0;
@@ -56,16 +56,15 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
             // Sum up and count data for each class
             #pragma omp for
             for (data_i = 0; data_i < data_n; data_i++) {
-                #pragma omp atomic update
+                #pragma omp atomic
                 centroids[partitioned[data_i]].x += data[data_i].x;
-                #pragma omp atomic update
+                #pragma omp atomic
                 centroids[partitioned[data_i]].y += data[data_i].y;
-                #pragma omp atomic update
+                #pragma omp atomic
                 count[partitioned[data_i]]++;
             }
-            
+        
             // Divide the sum with number of class for mean point
-            #pragma omp for
             for (class_i = 0; class_i < class_n; class_i++) {
                 centroids[class_i].x /= count[class_i];
                 centroids[class_i].y /= count[class_i];
