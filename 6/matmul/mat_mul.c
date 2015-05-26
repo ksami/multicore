@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
 
     start = get_time();
 
-    #pragma omp parallel num_threads(cnt_threads) shared(a, b, c) private(i, j, k)
+    #pragma omp parallel num_threads(cnt_threads) shared(a, b, c) private(i, j, k) collapse(3)
     {
         #pragma omp for
         for( i = 0; i < NDIM; i++ )
