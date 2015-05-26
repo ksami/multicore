@@ -23,7 +23,7 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
     for (i = 0; i < iteration_n; i++) {
 
         // Assignment step
-        #pragma omp parallel private(data_i)
+        #pragma omp parallel
         {
             #pragma omp for
             for (data_i = 0; data_i < data_n; data_i++) {
