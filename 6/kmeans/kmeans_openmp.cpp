@@ -24,19 +24,22 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
 
         // Assignment step
         #pragma omp parallel private(data_i)
-        for (data_i = 0; data_i < data_n; data_i++) {
-            float min_dist = DBL_MAX;
-      
-            for (class_i = 0; class_i < class_n; class_i++) {
-                t.x = data[data_i].x - centroids[class_i].x;
-                t.y = data[data_i].y - centroids[class_i].y;
+        {
+            #pragma omp for
+            for (data_i = 0; data_i < data_n; data_i++) {
+                float min_dist = DBL_MAX;
+          
+                for (class_i = 0; class_i < class_n; class_i++) {
+                    t.x = data[data_i].x - centroids[class_i].x;
+                    t.y = data[data_i].y - centroids[class_i].y;
 
-                float dist = t.x * t.x + t.y * t.y;
-    
-                if (dist < min_dist) {
-                    #pragma omp atomic
-                    partitioned[data_i] = class_i;
-                    min_dist = dist;
+                    float dist = t.x * t.x + t.y * t.y;
+        
+                    if (dist < min_dist) {
+                        #pragma omp atomic
+                        partitioned[data_i] = class_i;
+                        min_dist = dist;
+                    }
                 }
             }
         }
