@@ -24,7 +24,7 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
     // Iterate through number of interations
     for (i = 0; i < iteration_n; i++) {
 
-        #pragma omp parallel num_threads(CNT_THREADS) private(class_i, t) shared(data, centroids, partitioned)
+        #pragma omp parallel num_threads(CNT_THREADS) private(data_i, class_i, t) shared(data, centroids, partitioned, count)
         {
             // Assignment step
             #pragma omp for
