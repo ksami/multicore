@@ -8,7 +8,7 @@
     #include <omp.h>
 #endif
 
-#define CNT_THREADS 64
+#define CNT_THREADS 32
 
 
 void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* data, int* partitioned)
