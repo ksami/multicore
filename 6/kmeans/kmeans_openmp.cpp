@@ -22,12 +22,13 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
     // Iterate through number of interations
     for (i = 0; i < iteration_n; i++) {
 
-        // Assignment step
-        for (data_i = 0; data_i < data_n; data_i++) {
-            float min_dist = DBL_MAX;
+        #pragma omp parallel private(class_i, t) shared(data, centroids, partitioned)
+        {
+            // Assignment step
+            #pragma omp for
+            for (data_i = 0; data_i < data_n; data_i++) {
+                float min_dist = DBL_MAX;
 
-            #pragma omp parallel private(class_i, t, min_dist) shared(data, centroids, partitioned) {
-                #pragma omp for
                 for (class_i = 0; class_i < class_n; class_i++) {
                     t.x = data[data_i].x - centroids[class_i].x;
                     t.y = data[data_i].y - centroids[class_i].y;
