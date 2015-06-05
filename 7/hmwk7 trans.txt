@@ -1,0 +1,19 @@
+1. HW # 4 parallelized using MPI code in a given Matrix Multiplication and you like to measure performance
+
+2. HW # 4 for a given K-means algorithm code using the MPI in parallelism to Determine the performance
+
+
+ Qn. 1, 2: all write the source code and reports, must be submitted
+
+ Qn. 1, 2: the number of MPI processes per node use 1,2,4,8,16 (thorq --slots), changing the number of nodes (thorq -nodes) 1,2,4 measure performance and report
+
+ issue size, but you can modify as you wish during the experiment, Qn1: 8192 X 8192 Matrix Multiplication
+Qn2: 262,144 datapoint, 64 of centroid, 1024 single iteration
+
+ When using make run in the directory, set 4 nodes and 16 MPI processes per node using thor enqueue in the Makefile
+
+ Unlike the existing problems, using MPI requires modifications to be made to the skeleton code (initialization of data and timing code)
+State the changes made in the report
+
+Challenges Date: June 8 23:59
+How to submit: Submit a TA-mail (wookeun@aces.snu.ac.kr)

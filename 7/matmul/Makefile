@@ -1,9 +1,9 @@
 TARGET=mat_mul
 OBJS=mat_mul.o timers.o
 
-CC=gcc
+CC=mpicc
 CFLAGS=-g -Wall
-LDFLAGS=-fopenmp
+LDFLAGS=
 
 mat_mul: mat_mul.c 
 	$(CC) $^ $(CFLAGS) -o $@ ${LDFLAGS}
@@ -12,4 +12,4 @@ clean:
 	rm -rf $(TARGET) $(OBJS) task*
 
 run: $(TARGET)
-	thorq --add --device gpu ./$(TARGET) 32
+	thorq --add --device gpu --slots 16 --nodes 4 mpirun -np 64 ./$(TARGET)
