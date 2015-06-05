@@ -21,7 +21,6 @@ static inline double get_time()
 int main(int argc, char* argv[]) {
     int numprocs, myid;
     int i, j, k=1;
-    float sum=0;
     double start, end;
 
     MPI_Init(&argc,&argv);
@@ -45,22 +44,23 @@ int main(int argc, char* argv[]) {
 
         start = get_time();
     }
-
+if(myid==0) printf("init done\n");
 
     for( i = 0; i < NDIM; i++ )
     {
         for( j = 0; j < NDIM; j++ )
         {
-            sum = 0;
             for( k = myid; k < NDIM; k+=numprocs )
             {
-                sum += a[i][k] * b[k][j];
+                c[i][j] += a[i][k] * b[k][j];
             }
-            MPI_Reduce(&sum, &c[i][j], 1, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD);
         }
     }
+if(myid==0) printf("calc done\n");
 
     MPI_Barrier(MPI_COMM_WORLD);
+
+if(myid==0) printf("barrier done\n");
 
     if(myid == 0)
     {
