@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
         {
             for( k = 0; k < NDIM; k++ )
             {
-                subc[i][j] += recva[i][k] * b[k][j];
+                subc[i][j] += suba[i][k] * b[k][j];
             }
         }
     }
