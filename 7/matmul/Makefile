@@ -12,4 +12,4 @@ clean:
 	rm -rf $(TARGET) $(OBJS) task*
 
 run: $(TARGET)
-	thorq --add --device gpu --slots 16 --nodes 4 mpirun -np 64 ./$(TARGET)
+	thorq --add --device gpu --mode mpi --slots 16 --nodes 4 ./$(TARGET)
