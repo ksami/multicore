@@ -35,32 +35,31 @@ int main(int argc, char* argv[]) {
             {
                 a[i][j] = k;
                 b[i][j] = k;
+                c[i][j] = 0;
                 k++;
             }
         }
-
-        MPI_Bcast(a, NDIM*NDIM, MPI_FLOAT, myid, MPI_COMM_WORLD);
-        MPI_Bcast(b, NDIM*NDIM, MPI_FLOAT, myid, MPI_COMM_WORLD);
-
-        start = get_time();
     }
-if(myid==0) printf("init done\n");
 
-    for( i = 0; i < NDIM; i++ )
+    MPI_Bcast(a, NDIM*NDIM, MPI_FLOAT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(b, NDIM*NDIM, MPI_FLOAT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(c, NDIM*NDIM, MPI_FLOAT, 0, MPI_COMM_WORLD);
+
+    if(myid==0) 
+        start = get_time();
+
+    for( i = myid; i < NDIM; i+=numprocs )
     {
         for( j = 0; j < NDIM; j++ )
         {
-            for( k = myid; k < NDIM; k+=numprocs )
+            for( k = 0; k < NDIM; k++ )
             {
                 c[i][j] += a[i][k] * b[k][j];
             }
         }
     }
-if(myid==0) printf("calc done\n");
 
     MPI_Barrier(MPI_COMM_WORLD);
-
-if(myid==0) printf("barrier done\n");
 
     if(myid == 0)
     {
