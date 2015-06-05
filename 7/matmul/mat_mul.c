@@ -22,6 +22,8 @@ int main(int argc, char* argv[]) {
     int numprocs, myid;
     int i, j, k=1;
     double start, end;
+    float suba[NDIM][NDIM];
+    float subc[NDIM][NDIM];
 
     MPI_Init(&argc,&argv);
     MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
@@ -41,25 +43,26 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    MPI_Bcast(a, NDIM*NDIM, MPI_FLOAT, 0, MPI_COMM_WORLD);
-    MPI_Bcast(b, NDIM*NDIM, MPI_FLOAT, 0, MPI_COMM_WORLD);
-    MPI_Bcast(c, NDIM*NDIM, MPI_FLOAT, 0, MPI_COMM_WORLD);
-
+    
     if(myid==0) 
         start = get_time();
 
-    for( i = myid; i < NDIM; i+=numprocs )
+    MPI_Bcast(b, NDIM*NDIM, MPI_FLOAT, 0, MPI_COMM_WORLD);
+    MPI_Scatter(a, NDIM*NDIM/numprocs, MPI_FLOAT, suba[myid*NDIM/numprocs], NDIM*NDIM/numprocs, MPI_FLOAT, 0, MPI_COMM_WORLD);
+
+    for( i = myid*NDIM/numprocs; i < (myid+1)*NDIM/numprocs; i++ )
     {
         for( j = 0; j < NDIM; j++ )
         {
             for( k = 0; k < NDIM; k++ )
             {
-                c[i][j] += a[i][k] * b[k][j];
+                subc[i][j] += recva[i][k] * b[k][j];
             }
         }
     }
 
-    MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Gather(subc[myid*NDIM/numprocs], NDIM*NDIM/numprocs, MPI_FLOAT, c, NDIM*NDIM/numprocs, MPI_FLOAT, 0, MPI_COMM_WORLD);
+
 
     if(myid == 0)
     {
