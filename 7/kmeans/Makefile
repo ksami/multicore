@@ -1,5 +1,5 @@
 
-CXX=mpicc
+CXX=mpic++
 CXXFLAGS=-Wall
 
 
