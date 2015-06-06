@@ -22,8 +22,6 @@ int main(int argc, char* argv[]) {
     int numprocs, myid;
     int i, j, k=1;
     double start, end;
-    float suba[NDIM][NDIM];
-    float subc[NDIM][NDIM];
 
     MPI_Init(&argc,&argv);
     MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
@@ -31,6 +29,7 @@ int main(int argc, char* argv[]) {
 
     if(myid == 0)
     {
+
         for( i = 0; i < NDIM; i++ )
         {
             for( j = 0; j < NDIM; j++ )
@@ -48,20 +47,20 @@ int main(int argc, char* argv[]) {
         start = get_time();
 
     MPI_Bcast(b, NDIM*NDIM, MPI_FLOAT, 0, MPI_COMM_WORLD);
-    MPI_Scatter(a, NDIM*NDIM/numprocs, MPI_FLOAT, suba[myid*NDIM/numprocs], NDIM*NDIM/numprocs, MPI_FLOAT, 0, MPI_COMM_WORLD);
-
+    MPI_Scatter(a, NDIM*NDIM/numprocs, MPI_FLOAT, a[myid*NDIM/numprocs], NDIM*NDIM/numprocs, MPI_FLOAT, 0, MPI_COMM_WORLD);
+printf("computing slice %d (from row %d to %d)\n", myid, myid*NDIM/numprocs, ((myid+1)*NDIM/numprocs)-1);
     for( i = myid*NDIM/numprocs; i < (myid+1)*NDIM/numprocs; i++ )
     {
         for( j = 0; j < NDIM; j++ )
         {
             for( k = 0; k < NDIM; k++ )
             {
-                subc[i][j] += suba[i][k] * b[k][j];
+                c[i][j] += a[i][k] * b[k][j];
             }
         }
     }
 
-    MPI_Gather(subc[myid*NDIM/numprocs], NDIM*NDIM/numprocs, MPI_FLOAT, c, NDIM*NDIM/numprocs, MPI_FLOAT, 0, MPI_COMM_WORLD);
+    MPI_Gather(c[myid*NDIM/numprocs], NDIM*NDIM/numprocs, MPI_FLOAT, c, NDIM*NDIM/numprocs, MPI_FLOAT, 0, MPI_COMM_WORLD);
 
 
     if(myid == 0)
