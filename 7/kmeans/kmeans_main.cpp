@@ -11,6 +11,8 @@
 
 #define DATA_DIM 2
 #define DEFAULT_ITERATION 1024
+#define CLASSN 64
+#define DATAN 4096
 
 #define GET_TIME(T) __asm__ __volatile__ ("rdtsc\n" : "=A" (T))
 
@@ -33,7 +35,7 @@ int main(int argc, char** argv)
     MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
     MPI_Comm_rank(MPI_COMM_WORLD,&myid);
 
-    if(myid == 0) {
+    //if(myid == 0) {
         // Check parameters
         if (argc < 4) {
             fprintf(stderr, "usage: %s <centroid file> <data file> <paritioned result> [<final centroids>] [<iteration number>]\n", argv[0]);
@@ -63,16 +65,16 @@ int main(int argc, char** argv)
 
         partitioned = (int*)malloc(sizeof(int)*data_n);
 
-        clock_gettime(CLOCK_MONOTONIC, &start);
-    }
+        if(myid==0) clock_gettime(CLOCK_MONOTONIC, &start);
+    //}
 
 
-    MPI_Bcast(&iteration_n, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    MPI_Bcast(&class_n, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    MPI_Bcast(&data_n, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    MPI_Bcast(centroids, class_n, MPI_FLOAT, 0, MPI_COMM_WORLD);
-    MPI_Bcast(data, data_n, MPI_FLOAT, 0, MPI_COMM_WORLD);
-    MPI_Bcast(partitioned, data_n, MPI_INT, 0, MPI_COMM_WORLD);
+    //MPI_Bcast(&iteration_n, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    //MPI_Bcast(&class_n, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    //MPI_Bcast(&data_n, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    //MPI_Bcast(centroids, CLASSN, MPI_FLOAT, 0, MPI_COMM_WORLD);
+    //MPI_Bcast(data, DATAN, MPI_FLOAT, 0, MPI_COMM_WORLD);
+    //MPI_Bcast(partitioned, DATAN, MPI_INT, 0, MPI_COMM_WORLD);
 
     // Run Kmeans algorithm
     kmeans(iteration_n, class_n, data_n, (Point*)centroids, (Point*)data, partitioned);
@@ -84,6 +86,7 @@ int main(int argc, char** argv)
 
         timespec_subtract(&spent, &end, &start);
         printf("Time spent: %ld.%09ld\n", spent.tv_sec, spent.tv_nsec);
+        printf("done\n");
 
         // Write classified result
         io_file = fopen(argv[3], "wb");
