@@ -77,6 +77,7 @@ int main(int argc, char** argv)
     // Run Kmeans algorithm
     kmeans(iteration_n, class_n, data_n, (Point*)centroids, (Point*)data, partitioned);
 
+    MPI_Barrier(MPI_COMM_WORLD);
 
     if(myid == 0) {
         clock_gettime(CLOCK_MONOTONIC, &end);
