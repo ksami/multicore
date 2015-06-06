@@ -67,9 +67,9 @@ int main(int argc, char** argv)
     }
 
 
-    MPI_Bcast(iteration_n, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    MPI_Bcast(class_n, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    MPI_Bcast(data_n, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&iteration_n, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&class_n, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&data_n, 1, MPI_INT, 0, MPI_COMM_WORLD);
     MPI_Bcast(centroids, class_n, MPI_FLOAT, 0, MPI_COMM_WORLD);
     MPI_Bcast(data, data_n, MPI_FLOAT, 0, MPI_COMM_WORLD);
     MPI_Bcast(partitioned, data_n, MPI_INT, 0, MPI_COMM_WORLD);
