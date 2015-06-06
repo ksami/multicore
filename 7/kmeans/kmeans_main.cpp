@@ -2,6 +2,7 @@
   Sequential implementation of KMeans
 */
 
+#include "mpi.h"
 #include "kmeans.h"
 
 #include <stdio.h>
@@ -21,71 +22,91 @@ int timespec_subtract(struct timespec*, struct timespec*, struct timespec*);
 
 int main(int argc, char** argv)
 {
+    int numprocs, myid;
     int class_n, data_n, iteration_n;
     float *centroids, *data;
     int* partitioned;
     FILE *io_file;
     struct timespec start, end, spent;
 
-    // Check parameters
-    if (argc < 4) {
-        fprintf(stderr, "usage: %s <centroid file> <data file> <paritioned result> [<final centroids>] [<iteration number>]\n", argv[0]);
-        exit(EXIT_FAILURE);
+    MPI_Init(&argc,&argv);
+    MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
+    MPI_Comm_rank(MPI_COMM_WORLD,&myid);
+
+    if(myid == 0) {
+        // Check parameters
+        if (argc < 4) {
+            fprintf(stderr, "usage: %s <centroid file> <data file> <paritioned result> [<final centroids>] [<iteration number>]\n", argv[0]);
+            exit(EXIT_FAILURE);
+        }
+
+        // Read initial centroid data
+        io_file = fopen(argv[1], "rb");
+        if (io_file == NULL) {
+            fprintf(stderr, "File open error %s\n", argv[1]);
+            exit(EXIT_FAILURE);
+        }
+        class_n = read_data(io_file, &centroids);
+        fclose(io_file);
+
+        // Read input data
+        io_file = fopen(argv[2], "rb");
+        if (io_file == NULL) {
+            fprintf(stderr, "File open error %s\n", argv[2]);
+            exit(EXIT_FAILURE);
+        }
+        data_n = read_data(io_file, &data);
+        fclose(io_file);
+
+        iteration_n = argc > 5 ? atoi(argv[5]) : DEFAULT_ITERATION;
+            
+
+        partitioned = (int*)malloc(sizeof(int)*data_n);
+
+        clock_gettime(CLOCK_MONOTONIC, &start);
     }
 
-    // Read initial centroid data
-    io_file = fopen(argv[1], "rb");
-    if (io_file == NULL) {
-        fprintf(stderr, "File open error %s\n", argv[1]);
-        exit(EXIT_FAILURE);
-    }
-    class_n = read_data(io_file, &centroids);
-    fclose(io_file);
 
-    // Read input data
-    io_file = fopen(argv[2], "rb");
-    if (io_file == NULL) {
-        fprintf(stderr, "File open error %s\n", argv[2]);
-        exit(EXIT_FAILURE);
-    }
-    data_n = read_data(io_file, &data);
-    fclose(io_file);
+    MPI_Bcast(iteration_n, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(class_n, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(data_n, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(centroids, class_n, MPI_FLOAT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(data, data_n, MPI_FLOAT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(partitioned, data_n, MPI_INT, 0, MPI_COMM_WORLD);
 
-    iteration_n = argc > 5 ? atoi(argv[5]) : DEFAULT_ITERATION;
-        
-
-    partitioned = (int*)malloc(sizeof(int)*data_n);
-
-
-    clock_gettime(CLOCK_MONOTONIC, &start);
     // Run Kmeans algorithm
     kmeans(iteration_n, class_n, data_n, (Point*)centroids, (Point*)data, partitioned);
-    clock_gettime(CLOCK_MONOTONIC, &end);
-
-    timespec_subtract(&spent, &end, &start);
-    printf("Time spent: %ld.%09ld\n", spent.tv_sec, spent.tv_nsec);
-
-    // Write classified result
-    io_file = fopen(argv[3], "wb");
-    fwrite(&data_n, sizeof(data_n), 1, io_file);
-    fwrite(partitioned, sizeof(int), data_n, io_file); 
-    fclose(io_file);
 
 
-    // Write final centroid data
-    if (argc > 4) {
-        io_file = fopen(argv[4], "wb");
-        fwrite(&class_n, sizeof(class_n), 1, io_file);
-        fwrite(centroids, sizeof(Point), class_n, io_file); 
+    if(myid == 0) {
+        clock_gettime(CLOCK_MONOTONIC, &end);
+
+        timespec_subtract(&spent, &end, &start);
+        printf("Time spent: %ld.%09ld\n", spent.tv_sec, spent.tv_nsec);
+
+        // Write classified result
+        io_file = fopen(argv[3], "wb");
+        fwrite(&data_n, sizeof(data_n), 1, io_file);
+        fwrite(partitioned, sizeof(int), data_n, io_file); 
         fclose(io_file);
+
+
+        // Write final centroid data
+        if (argc > 4) {
+            io_file = fopen(argv[4], "wb");
+            fwrite(&class_n, sizeof(class_n), 1, io_file);
+            fwrite(centroids, sizeof(Point), class_n, io_file); 
+            fclose(io_file);
+        }
+
+
+        // Free allocated buffers
+        free(centroids);
+        free(data);
+        free(partitioned);
     }
 
-
-    // Free allocated buffers
-    free(centroids);
-    free(data);
-    free(partitioned);
-
+    MPI_Finalize();
     return 0;
 }
 
