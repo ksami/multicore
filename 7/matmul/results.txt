@@ -8,4 +8,8 @@
 202.stdout:Time elapsed : 3368.182495 sec
 204.stdout:Time elapsed : 1678.696601 sec
 208.stdout:Time elapsed : 773.961962 sec
+4016.stdout:Time elapsed : 230.305878 sec
 401.stdout:Time elapsed : 3575.143874 sec
+402.stdout:Time elapsed : 1427.467964 sec
+404.stdout:Time elapsed : 895.337557 sec
+408.stdout:Time elapsed : 539.208868 sec

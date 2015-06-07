@@ -4,7 +4,7 @@
 #include <sys/time.h>
 #include "timers.h"
 
-#define NDIM 4096
+#define NDIM 8192
 
 float a[NDIM][NDIM];
 float b[NDIM][NDIM];
@@ -43,12 +43,12 @@ int main(int argc, char* argv[]) {
     }
 
     
-    if(myid==0) 
-        start = get_time();
 
     MPI_Bcast(b, NDIM*NDIM, MPI_FLOAT, 0, MPI_COMM_WORLD);
     MPI_Scatter(a, NDIM*NDIM/numprocs, MPI_FLOAT, a[myid*NDIM/numprocs], NDIM*NDIM/numprocs, MPI_FLOAT, 0, MPI_COMM_WORLD);
-printf("computing slice %d (from row %d to %d)\n", myid, myid*NDIM/numprocs, ((myid+1)*NDIM/numprocs)-1);
+//printf("computing slice %d (from row %d to %d)\n", myid, myid*NDIM/numprocs, ((myid+1)*NDIM/numprocs)-1);
+    if(myid==0) 
+        start = get_time();
     for( i = myid*NDIM/numprocs; i < (myid+1)*NDIM/numprocs; i++ )
     {
         for( j = 0; j < NDIM; j++ )
@@ -60,14 +60,14 @@ printf("computing slice %d (from row %d to %d)\n", myid, myid*NDIM/numprocs, ((m
         }
     }
 
-    MPI_Gather(c[myid*NDIM/numprocs], NDIM*NDIM/numprocs, MPI_FLOAT, c, NDIM*NDIM/numprocs, MPI_FLOAT, 0, MPI_COMM_WORLD);
-
-
     if(myid == 0)
     {
         end = get_time();
         printf("Time elapsed : %lf sec\n", end-start);
     }
+    MPI_Gather(c[myid*NDIM/numprocs], NDIM*NDIM/numprocs, MPI_FLOAT, c, NDIM*NDIM/numprocs, MPI_FLOAT, 0, MPI_COMM_WORLD);
+
+
 
     MPI_Finalize();
     return 0;
