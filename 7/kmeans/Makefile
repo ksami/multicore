@@ -35,10 +35,10 @@ expt:
 	thorq --add --name 304  --mode mpi --slots 4  --nodes 3 kmeans_mpi centroid.point data.point result_par.class final_centroid_par.point 1024
 	thorq --add --name 308  --mode mpi --slots 8  --nodes 3 kmeans_mpi centroid.point data.point result_par.class final_centroid_par.point 1024
 	thorq --add --name 3016 --mode mpi --slots 16 --nodes 3 kmeans_mpi centroid.point data.point result_par.class final_centroid_par.point 1024
-	thorq --add --name 4016 --mode mpi --slots 1  --nodes 4 kmeans_mpi centroid.point data.point result_par.class final_centroid_par.point 1024
-	thorq --add --name 4016 --mode mpi --slots 2  --nodes 4 kmeans_mpi centroid.point data.point result_par.class final_centroid_par.point 1024
-	thorq --add --name 4016 --mode mpi --slots 4  --nodes 4 kmeans_mpi centroid.point data.point result_par.class final_centroid_par.point 1024
-	thorq --add --name 4016 --mode mpi --slots 8  --nodes 4 kmeans_mpi centroid.point data.point result_par.class final_centroid_par.point 1024
+	thorq --add --name 401  --mode mpi --slots 1  --nodes 4 kmeans_mpi centroid.point data.point result_par.class final_centroid_par.point 1024
+	thorq --add --name 402  --mode mpi --slots 2  --nodes 4 kmeans_mpi centroid.point data.point result_par.class final_centroid_par.point 1024
+	thorq --add --name 404  --mode mpi --slots 4  --nodes 4 kmeans_mpi centroid.point data.point result_par.class final_centroid_par.point 1024
+	thorq --add --name 408  --mode mpi --slots 8  --nodes 4 kmeans_mpi centroid.point data.point result_par.class final_centroid_par.point 1024
 	thorq --add --name 4016 --mode mpi --slots 16 --nodes 4 kmeans_mpi centroid.point data.point result_par.class final_centroid_par.point 1024
 	
 
