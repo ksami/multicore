@@ -46,9 +46,10 @@ int main(int argc, char* argv[]) {
 
     MPI_Bcast(b, NDIM*NDIM, MPI_FLOAT, 0, MPI_COMM_WORLD);
     MPI_Scatter(a, NDIM*NDIM/numprocs, MPI_FLOAT, a[myid*NDIM/numprocs], NDIM*NDIM/numprocs, MPI_FLOAT, 0, MPI_COMM_WORLD);
-//printf("computing slice %d (from row %d to %d)\n", myid, myid*NDIM/numprocs, ((myid+1)*NDIM/numprocs)-1);
+
     if(myid==0) 
         start = get_time();
+
     for( i = myid*NDIM/numprocs; i < (myid+1)*NDIM/numprocs; i++ )
     {
         for( j = 0; j < NDIM; j++ )

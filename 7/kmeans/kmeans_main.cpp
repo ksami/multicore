@@ -33,38 +33,37 @@ int main(int argc, char** argv)
     MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
     MPI_Comm_rank(MPI_COMM_WORLD,&myid);
 
-    //if(myid == 0) {
-        // Check parameters
-        if (argc < 4) {
-            fprintf(stderr, "usage: %s <centroid file> <data file> <paritioned result> [<final centroids>] [<iteration number>]\n", argv[0]);
-            exit(EXIT_FAILURE);
-        }
+    // Check parameters
+    if (argc < 4) {
+        fprintf(stderr, "usage: %s <centroid file> <data file> <paritioned result> [<final centroids>] [<iteration number>]\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
 
-        // Read initial centroid data
-        io_file = fopen(argv[1], "rb");
-        if (io_file == NULL) {
-            fprintf(stderr, "File open error %s\n", argv[1]);
-            exit(EXIT_FAILURE);
-        }
-        class_n = read_data(io_file, &centroids);
-        fclose(io_file);
+    // Read initial centroid data
+    io_file = fopen(argv[1], "rb");
+    if (io_file == NULL) {
+        fprintf(stderr, "File open error %s\n", argv[1]);
+        exit(EXIT_FAILURE);
+    }
+    class_n = read_data(io_file, &centroids);
+    fclose(io_file);
 
-        // Read input data
-        io_file = fopen(argv[2], "rb");
-        if (io_file == NULL) {
-            fprintf(stderr, "File open error %s\n", argv[2]);
-            exit(EXIT_FAILURE);
-        }
-        data_n = read_data(io_file, &data);
-        fclose(io_file);
+    // Read input data
+    io_file = fopen(argv[2], "rb");
+    if (io_file == NULL) {
+        fprintf(stderr, "File open error %s\n", argv[2]);
+        exit(EXIT_FAILURE);
+    }
+    data_n = read_data(io_file, &data);
+    fclose(io_file);
 
-        iteration_n = argc > 5 ? atoi(argv[5]) : DEFAULT_ITERATION;
-            
+    iteration_n = argc > 5 ? atoi(argv[5]) : DEFAULT_ITERATION;
+        
 
-        partitioned = (int*)malloc(sizeof(int)*data_n);
+    partitioned = (int*)malloc(sizeof(int)*data_n);
 
-        if(myid==0) clock_gettime(CLOCK_MONOTONIC, &start);
-    //}
+    if(myid==0)
+        clock_gettime(CLOCK_MONOTONIC, &start);
 
     MPI_Barrier(MPI_COMM_WORLD);
 
@@ -93,13 +92,13 @@ int main(int argc, char** argv)
             fwrite(centroids, sizeof(Point), class_n, io_file); 
             fclose(io_file);
         }
-
-
-        // Free allocated buffers
-        free(centroids);
-        free(data);
-        free(partitioned);
     }
+
+
+    // Free allocated buffers
+    free(centroids);
+    free(data);
+    free(partitioned);
 
     MPI_Finalize();
     return 0;

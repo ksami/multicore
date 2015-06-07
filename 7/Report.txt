@@ -5,50 +5,48 @@ Ang Wei Xiang Kenneth
 2015-81466
 
 
+Timing is handled only by root process 0. Data is initialized by root process 0 then broadcast to the other processes.
+
 
 ### 1
 
-32 Threads, 512x512 Matrix size:
-Inner loop : 0.060864 sec
-Middle loop : 0.166431 sec
-Outer loop : 0.157749 sec
-
-
-4096x4096 Matrix size:
-
-Threads |  Time
------------------
-   32   | 41.454707
-   16   | 46.960479
-    8   | 80.158747
-    4   | 129.551615
-    2   | Too long
-    1   | Too long
+Nodes | Slots |     Time
+------------------------------
+  1   |   1   |  16226.186064
+  1   |   2   |  6747.508944
+  1   |   4   |  2955.191280
+  1   |   8   |  1545.229664
+  1   |   16  |  860.979235
+  2   |   1   |  7295.013877
+  2   |   2   |  3368.182495
+  2   |   4   |  1678.696601
+  2   |   8   |  773.961962
+  2   |   16  |  435.046689
+  4   |   1   |  3575.143874
+  4   |   2   |  1427.467964
+  4   |   4   |  895.337557
+  4   |   8   |  539.208868
+  4   |   16  |  230.305878
 
 
 
 
 ### 2
 
-Threads |  Time
------------------
-   32   | 19.279200
-   16   | 22.570092
-    8   | 20.523535
-    4   | 21.361915
-    2   | 38.151803
-    1   | 38.022647
-
-
-#pragma omp atomic is used in this loop
-
-// Sum up and count data for each class
-#pragma omp for
-for (data_i = 0; data_i < data_n; data_i++) {
-    #pragma omp atomic
-    centroids[partitioned[data_i]].x += data[data_i].x;
-    #pragma omp atomic
-    centroids[partitioned[data_i]].y += data[data_i].y;
-    #pragma omp atomic
-    count[partitioned[data_i]]++;
-}
+Nodes | Slots |     Time
+------------------------------
+  1   |   1   |  129.221608750
+  1   |   2   |  64.257274546
+  1   |   4   |  33.466094865
+  1   |   8   |  18.227150018
+  1   |   16  |  12.961705391
+  2   |   1   |  64.199131432
+  2   |   2   |  33.111354757
+  2   |   4   |  16.879590495
+  2   |   8   |  9.889086215
+  2   |   16  |  9.517994049
+  4   |   1   |  32.463500497
+  4   |   2   |  16.777672244
+  4   |   4   |  8.958395628
+  4   |   8   |  5.482436587
+  4   |   16  |  5.010386562
