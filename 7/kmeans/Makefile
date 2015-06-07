@@ -20,7 +20,7 @@ kmeans_mpi: kmeans_mpi.o kmeans_main.o
 
 run:
 	./gen_data.py centroid 64 centroid.point
-	./gen_data.py data 4096 data.point 64
+	./gen_data.py data 262144 data.point 64
 	thorq --add --mode mpi --slots 16 --nodes 4 kmeans_mpi centroid.point data.point result_par.class final_centroid_par.point 1024
 	
 

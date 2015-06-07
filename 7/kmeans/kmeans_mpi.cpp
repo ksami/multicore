@@ -62,7 +62,7 @@ void kmeans(int iteration_n, int class_n, int data_n, Point* centroids, Point* d
         MPI_Barrier(MPI_COMM_WORLD);
 
         // Divide the sum with number of class for mean point
-        for (class_i = 0; class_i < class_n; class_i++) {
+        for (class_i = myid*class_n/numprocs; class_i < (myid+1)*class_n/numprocs; class_i++) {
             centroids[class_i].x /= count[class_i];
             centroids[class_i].y /= count[class_i];
         }

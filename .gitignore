@@ -3,3 +3,7 @@
 *.o
 *.stderr
 *.zip
+*.stdout
+*.swp
+*.class
+*.point
