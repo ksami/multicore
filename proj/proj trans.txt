@@ -1,0 +1,46 @@
+4980.441A-001 multi-core computing
+Project: Swaption benchmark acceleration
+======
+The goal of this task is PARSEC benchmark Included in Swaption The performance of the implemented using OpenCL To accelerate. By implementing the four cases below, shall be submitted with the report.
+a) using OpenCL implementation using all of the CPU of one node
+b) using OpenCL implementation using all of the GPU of one node
+c) using MPI + OpenCL implementation using all of GPU of four nodes
+d) Use SnuCL implementation using all of the GPU of four nodes
+
+SnuCL version used is 1.3.2, the compiler uses gcc 4.4.6 (compiler of Chundoong login nodes), and other execution environment (OpenCL library versions, and so on) are based on the Chundoong. Performance of project deliverables evaluation is also carried out in Chundoong.
+
+And Basic source code attached is parallelized using pthread, you can compile and test the following:
+- Sequential version compiled: make version = seq
+- Pthread compiled version: make version = pthread
+- Sample Run: ./run.sh
+
+4 kinds of implementations, each compile and run the following command (thor enqueue) should be
+At compile time
+a) a single node OpenCL CPU: make version = cpu
+b) a single-node OpenCL GPU: make version = gpu
+c) 4 node MPI + OpenCL GPU: make version = mpi
+d) 4 nodes SnuCL GPU: make version = snucl
+When running
+a) a single node OpenCL CPU: ./run_cpu
+b) a single-node OpenCL GPU: ./run_gpu
+c) 4 node MPI + OpenCL GPU: ./run_mpi
+d) 4 nodes SnuCL GPU: ./run_snucl
+
+------
+Parsec: http://parsec.cs.princeton.edu
+Swaption: http://en.wikipedia.org/wiki/Swaption
+------
+
+Notice concerning project evaluation are as follows:
+ Perform a result of implementation and all implementations will be the same as Sequential, which results output to the screen
+It is determined by whether or not the same.
+ number of evaluation Swaption (-ns option set) and is fixed to 128, the number of simulations (-sm
+Setting as an option) is used to be sufficiently large. This should be done taking into account the parallelism.
+ All four implementation assessment is reflected in the scores with equal prominence.
+ evaluation score is composed of performance 90% + report 10%. The report attempted parallelism implementation
+It should describe the idea for parallelization and optimization techniques.
+ it will be announced via the ETL If you have any project-related notice four additional important announcements ETL am
+Bulletin will often see the term
+
+Project results will be submitted to the TA's e-mail by June 19th 23:59.
+Grace day not applicable!
