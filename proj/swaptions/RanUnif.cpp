@@ -19,6 +19,7 @@ FTYPE RanUnif( long *s )
   ix = *s;
   *s = ix+1;
   ix *= 1513517L;
+  ix %= 2147483647L; 
   k1 = ix/127773L;
   ix = 16807L*( ix - k1*127773L ) - k1 * 2836L;
   if (ix < 0) ix = ix + 2147483647L;
