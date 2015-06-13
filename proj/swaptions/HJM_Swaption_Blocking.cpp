@@ -146,8 +146,13 @@ int HJM_Swaption_Blocking(FTYPE *pdSwaptionPrice, //Output vector that will stor
   dSumSimSwaptionPrice = 0.0;
   dSumSquareSimSwaptionPrice = 0.0;
 
+
+  //TODO: BLOCKSIZE=16, iN=11, iFactors=3,
+  //      iSwapVectorLength=9, lTrials=no. of simulations
+  //long functions: HJM_SimPath_Forward_Blocking
   //Simulations begin:
   for (l=0;l<=lTrials-1;l+=BLOCKSIZE) {
+
 
     //For each trial a new HJM Path is generated
     iSuccess = HJM_SimPath_Forward_Blocking(ppdHJMPath, iN, iFactors, dYears, pdForward, pdTotalDrift,ppdFactors, &iRndSeed, BLOCKSIZE); /* GC: 51% of the time goes here */
@@ -196,8 +201,9 @@ int HJM_Swaption_Blocking(FTYPE *pdSwaptionPrice, //Output vector that will stor
     dSumSimSwaptionPrice += dDiscSwaptionPayoff;
     dSumSquareSimSwaptionPrice += dDiscSwaptionPayoff*dDiscSwaptionPayoff;
     } // END BLOCK simulation
-    
-  }
+
+
+  } //Simulations end
 
   // Simulation Results Stored
   dSimSwaptionMeanPrice = dSumSimSwaptionPrice/lTrials;
