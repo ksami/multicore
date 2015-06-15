@@ -1,0 +1,4 @@
+No protocol specified
+--------------------------------------------------------------------------
+mpirun noticed that process rank 0 with PID 13038 on node c00 exited on signal 11 (Segmentation fault).
+--------------------------------------------------------------------------

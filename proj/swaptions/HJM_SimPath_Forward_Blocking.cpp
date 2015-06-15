@@ -132,6 +132,7 @@ const char* program_src =
 "        pdZ[(l*rowsize)+j]= CumNormalInv(randZ[(l*rowsize)+j]);  \n"
 "    }\n"
 "  }\n"
+"  output[id] = 1;\n"
 "}\n";
 
 
