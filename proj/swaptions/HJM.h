@@ -70,10 +70,3 @@ extern "C" FTYPE **dmatrix( long nrl, long nrh, long ncl, long nch );
 extern "C" void free_dvector( FTYPE *v, long nl, long nh );
 extern "C" void free_dmatrix( FTYPE **m, long nrl, long nrh, long ncl, long nch );
 */
-
-#ifdef ENABLE_OPENCL
-#include <CL/cl.h>
-// OpenCL Errors //
-void printOpenCLError(char* functionName, cl_int error);
-// --OpenCL errors-- //
-#endif  //ENABLE_OPENCL
