@@ -92,6 +92,13 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
 #ifdef ENABLE_OPENCL
     int GLOBAL_WORK_ITEMS = BLOCKSIZE * iFactors * iN;
     cl_int result;
+    const char* kernel_name = "test";
+    const char* program_src =
+    "__kernel void test(__global int* output) {"
+    "    int id = get_global_id(0);"
+    "    output[id]=id;"
+    "}";
+
     int output[GLOBAL_WORK_ITEMS];  //debug
 
     // OpenCL //
