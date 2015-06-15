@@ -210,16 +210,16 @@ int main(int argc, char *argv[])
 #else
     result = clGetDeviceIDs(*platform, CL_DEVICE_TYPE_GPU, 1, device, NULL);
 #endif
-    if(result!=CL_SUCCESS) printOpenCLError("clGetDeviceIDs", result);
+    // if(result!=CL_SUCCESS) printOpenCLError("clGetDeviceIDs", result);
 
     // Create an OpenCL context on a GPU device
     *context = clCreateContext(0, 1, device, NULL, NULL, &result);
-    if(result!=CL_SUCCESS) printOpenCLError("clCreateContext", result);
+    // if(result!=CL_SUCCESS) printOpenCLError("clCreateContext", result);
 
     // Create a command queue and attach it to the compute device
     // (in-order queue)
     *command_queue = clCreateCommandQueue(*context, *device, 0, &result);
-    if(result!=CL_SUCCESS) printOpenCLError("clCreateCommandQueue", result);
+    // if(result!=CL_SUCCESS) printOpenCLError("clCreateCommandQueue", result);
 
 
 #endif  //ENABLE_OPENCL
