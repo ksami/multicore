@@ -64,13 +64,13 @@ struct ParallelB {
 const char* kernel_name = "test";
 const char* program_src =
 "#define FTYPE double\n"
-"__kernel void test(__global int* output) {\n"
+"__kernel void test(__global int* output, __global int* input) {\n"
 "    int id = get_global_id(0);\n"
 "    FTYPE num = (double)(id%5)/3;\n"
 "    if(num>0)\n"
 "      output[id]=0;\n"
 "    else\n"
-"      output[id]=1;\n"
+"      output[id]=input[1];\n"
 "}";
 
 int done=0;
@@ -193,6 +193,7 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
     int GLOBAL_WORK_ITEMS = 128;
     cl_int result;
     int output[GLOBAL_WORK_ITEMS];  //debug
+    int input[2] = {3, 7};  //debug
 
     // OpenCL //
     
@@ -231,17 +232,21 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
 
     // Allocate buffer memory objects
     cl_mem bufferOutput;
+    cl_mem bufferInput;
     // cl_mem bufferData;
     // cl_mem bufferCentroids;
     // cl_mem bufferPartitioned;
 
     size_t sizeOutput = GLOBAL_WORK_ITEMS * sizeof(int);
+    size_t sizeInput = 2 * sizeof(int);
     // size_t sizeData, sizeCentroids, sizePartitioned;
     // sizeData = data_n * sizeof(Point);
     // sizeCentroids = class_n * sizeof(Point);
     // sizePartitioned = data_n * sizeof(int);
 
     bufferOutput = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeOutput, NULL, &result);
+    if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
+    bufferInput = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeInput, NULL, &result);
     if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
     // bufferData = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeData, NULL, &result);
     // bufferCentroids = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeCentroids, NULL, &result);
@@ -295,13 +300,14 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
 
     // Set the arguments of the kernel
     clSetKernelArg(kernel, 0, sizeof(cl_mem), (void*) &bufferOutput);
+    clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*) &bufferInput);
     // clSetKernelArg(kernel, 0, sizeof(cl_mem), (void*) &bufferData);
     // clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*) &bufferCentroids);
     // clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*) &bufferPartitioned);
     
     // Copy the input vectors to the corresponding buffers
-    // result = clEnqueueWriteBuffer(command_queue, bufferOutput, CL_FALSE, 0, sizeOutput, output, 0, NULL, NULL);
-    // if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
+    result = clEnqueueWriteBuffer(command_queue, bufferInput, CL_FALSE, 0, sizeInput, input, 0, NULL, NULL);
+    if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
     
     // Execute the kernel
     result = clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL, global, local, 0, NULL, NULL);
