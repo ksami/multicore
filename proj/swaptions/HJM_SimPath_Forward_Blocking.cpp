@@ -61,17 +61,78 @@ struct ParallelB {
 #ifdef ENABLE_OPENCL
 #include <CL/cl.h>
 
-const char* kernel_name = "test";
+const char* kernel_serialB = "op_serialB";
 const char* program_src =
 "#define FTYPE double\n"
-"__kernel void test(__global int* output, __global int* input) {\n"
-"    int id = get_global_id(0);\n"
-"    FTYPE num = (double)(id%5)/3;\n"
-"    if(num>0)\n"
-"      output[id]=0;\n"
-"    else\n"
-"      output[id]=input[1];\n"
-"}";
+"\n"
+"/**********************************************************************/\n"
+"static FTYPE a[4] = {\n"
+"  2.50662823884,\n"
+"    -18.61500062529,\n"
+"    41.39119773534,\n"
+"    -25.44106049637\n"
+"};\n"
+"\n"
+"static FTYPE b[4] = {\n"
+"  -8.47351093090,\n"
+"    23.08336743743,\n"
+"    -21.06224101826,\n"
+"    3.13082909833\n"
+"};\n"
+"\n"
+"static FTYPE c[9] = {\n"
+"  0.3374754822726147,\n"
+"    0.9761690190917186,\n"
+"    0.1607979714918209,\n"
+"    0.0276438810333863,\n"
+"    0.0038405729373609,\n"
+"    0.0003951896511919,\n"
+"    0.0000321767881768,\n"
+"    0.0000002888167364,\n"
+"    0.0000003960315187\n"
+"};\n"
+"\n"
+"/**********************************************************************/\n"
+"FTYPE CumNormalInv( FTYPE u )\n"
+"{\n"
+"  \n"
+"  FTYPE x, r;\n"
+"  \n"
+"  x = u - 0.5;\n"
+"  if( fabs (x) < 0.42 )\n"
+"  { \n"
+"    r = x * x;\n"
+"    r = x * ((( a[3]*r + a[2]) * r + a[1]) * r + a[0])/\n"
+"          ((((b[3] * r+ b[2]) * r + b[1]) * r + b[0]) * r + 1.0);\n"
+"    return (r);\n"
+"  }\n"
+"  \n"
+"  r = u;\n"
+"  if( x > 0.0 ) r = 1.0 - u;\n"
+"  r = log(-log(r));\n"
+"  r = c[0] + r * (c[1] + r * \n"
+"       (c[2] + r * (c[3] + r * \n"
+"       (c[4] + r * (c[5] + r * (c[6] + r * (c[7] + r*c[8])))))));\n"
+"  if( x < 0.0 ) r = -r;\n"
+"  \n"
+"  return (r);\n"
+"  \n"
+"} // end of CumNormalInv\n"
+"\n"
+"__kernel void op_serialB(__global FTYPE **pdZ, __global FTYPE **randZ, __global int* output, __global int* input)\n"
+"{\n"
+"  int BLOCKSIZE = input[0];\n"
+"  int iFactors = input[1];\n"
+"  int iN = input[2];\n"
+"  int id = get_global_id(0);\n"
+"\n"
+"  for(int l=0;l<=iFactors-1;++l){\n"
+"    for(int j=id/BLOCKSIZE*iN; j<(id+1)/BLOCKSIZE*iN; j++){\n"
+"        pdZ[l][j]= CumNormalInv(randZ[l][j]);  \n"
+"    }\n"
+"  }\n"
+"}\n";
+
 
 int done=0;
 cl_platform_id platform;
@@ -190,10 +251,10 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
 //This function computes and stores an HJM Path for given inputs
 
 #ifdef ENABLE_OPENCL
-    int GLOBAL_WORK_ITEMS = 128;
+    int GLOBAL_WORK_ITEMS = 176;
     cl_int result;
     int output[GLOBAL_WORK_ITEMS];  //debug
-    int input[2] = {3, 7};  //debug
+    int input[4] = {0, 0, 0, 0};  //debug
 
     // OpenCL //
     
@@ -230,27 +291,6 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
     if(result!=CL_SUCCESS) printOpenCLError("clCreateCommandQueue", result);
     }
 
-    // Allocate buffer memory objects
-    cl_mem bufferOutput;
-    cl_mem bufferInput;
-    // cl_mem bufferData;
-    // cl_mem bufferCentroids;
-    // cl_mem bufferPartitioned;
-
-    size_t sizeOutput = GLOBAL_WORK_ITEMS * sizeof(int);
-    size_t sizeInput = 2 * sizeof(int);
-    // size_t sizeData, sizeCentroids, sizePartitioned;
-    // sizeData = data_n * sizeof(Point);
-    // sizeCentroids = class_n * sizeof(Point);
-    // sizePartitioned = data_n * sizeof(int);
-
-    bufferOutput = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeOutput, NULL, &result);
-    if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
-    bufferInput = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeInput, NULL, &result);
-    if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
-    // bufferData = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeData, NULL, &result);
-    // bufferCentroids = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeCentroids, NULL, &result);
-    // bufferPartitioned = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizePartitioned, NULL, &result);
 
 
     // Create an OpenCL program object for the context 
@@ -292,42 +332,7 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
         exit(EXIT_FAILURE);
     }
 
-    // Create a kernel object from the program
-    cl_kernel kernel;
-    kernel = clCreateKernel(program, kernel_name, &result);
-    if(result!=CL_SUCCESS) printOpenCLError("clCreateKernel", result);
-        
-
-    // Set the arguments of the kernel
-    clSetKernelArg(kernel, 0, sizeof(cl_mem), (void*) &bufferOutput);
-    clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*) &bufferInput);
-    // clSetKernelArg(kernel, 0, sizeof(cl_mem), (void*) &bufferData);
-    // clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*) &bufferCentroids);
-    // clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*) &bufferPartitioned);
-    
-    // Copy the input vectors to the corresponding buffers
-    result = clEnqueueWriteBuffer(command_queue, bufferInput, CL_FALSE, 0, sizeInput, input, 0, NULL, NULL);
-    if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
-    
-    // Execute the kernel
-    result = clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL, global, local, 0, NULL, NULL);
-    if(result!=CL_SUCCESS) printOpenCLError("clEnqueueNDRangeKernel", result);
-    
-    // Copy the result from bufferOutput to output
-    result = clEnqueueReadBuffer(command_queue, bufferOutput, CL_TRUE, 0, sizeOutput, output, 0, NULL, NULL);
-    if(result != CL_SUCCESS) printOpenCLError("clEnqueueReadBuffer", result);
-
-    result = clFinish(command_queue);
-    if(result != CL_SUCCESS) printOpenCLError("clFinish", result);
-
-    //debug check output
-    for(int i=0; i<GLOBAL_WORK_ITEMS; i++)
-    {
-        if(output[i]) printf("%d: %d\n", i, output[i]);
-    }
-
 #endif  //ENABLE_OPENCL
-
 
 
     int iSuccess = 0;
@@ -384,8 +389,77 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
     }
 
 #else
+    #ifdef ENABLE_OPENCL
+
+        // Create a kernel object from the program
+        cl_kernel kernel;
+        kernel = clCreateKernel(program, kernel_serialB, &result);
+        if(result!=CL_SUCCESS) printOpenCLError("clCreateKernel", result);
+
+        // Allocate buffer memory objects
+        cl_mem bufferOutput;
+        cl_mem bufferInput;
+        cl_mem bufferpdZ;
+        cl_mem bufferrandZ
+        
+        size_t sizeOutput = GLOBAL_WORK_ITEMS * sizeof(int);
+        size_t sizeInput = 4 * sizeof(int);
+        size_t sizepdZ = iFactors * iN * BLOCKSIZE * sizeof(FTYPE);
+        size_t sizerandZ = iFactors * iN * BLOCKSIZE * sizeof(FTYPE);
+        
+
+        bufferOutput = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeOutput, NULL, &result);
+        if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
+        bufferInput = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeInput, NULL, &result);
+        if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
+        bufferpdZ = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizepdZ, NULL, &result);
+        if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
+        bufferrandZ = clCreateBuffer(context, CL_MEM_READ_ONLY, sizerandZ, NULL, &result);
+        if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
+
+
+        // Set the arguments of the kernel
+        clSetKernelArg(kernel, 0, sizeof(cl_mem), (void*) &bufferpdZ);
+        clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*) &bufferrandZ);
+        clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*) &bufferOutput);
+        clSetKernelArg(kernel, 3, sizeof(cl_mem), (void*) &bufferInput);
+
+        
+        // Copy the input vectors to the corresponding buffers
+        input[0] = BLOCKSIZE;
+        input[1] = iFactors;
+        input[2] = iN;
+        result = clEnqueueWriteBuffer(command_queue, bufferInput, CL_FALSE, 0, sizeInput, input, 0, NULL, NULL);
+        if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
+        result = clEnqueueWriteBuffer(command_queue, bufferrandZ, CL_FALSE, 0, sizerandZ, randZ, 0, NULL, NULL);
+        if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
+        
+        // Execute the kernel
+        result = clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL, global, local, 0, NULL, NULL);
+        if(result!=CL_SUCCESS) printOpenCLError("clEnqueueNDRangeKernel", result);
+        
+        // Copy the result from bufferOutput to output
+        result = clEnqueueReadBuffer(command_queue, bufferOutput, CL_TRUE, 0, sizeOutput, output, 0, NULL, NULL);
+        if(result != CL_SUCCESS) printOpenCLError("clEnqueueReadBuffer", result);
+        result = clEnqueueReadBuffer(command_queue, bufferpdZ, CL_TRUE, 0, sizepdZ, pdZ, 0, NULL, NULL);
+        if(result != CL_SUCCESS) printOpenCLError("clEnqueueReadBuffer", result);
+
+        result = clFinish(command_queue);
+        if(result != CL_SUCCESS) printOpenCLError("clFinish", result);
+
+        //debug check output
+        for(int i=0; i<GLOBAL_WORK_ITEMS; i++)
+        {
+            if(output[i]) printf("%d: %d\n", i, output[i]);
+        }
+
+    #else
+
     /* 18% of the total executition time */
     serialB(pdZ, randZ, BLOCKSIZE, iN, iFactors);
+
+    #endif  //ENABLE_OPENCL
+
 #endif
 
     //TODO:
