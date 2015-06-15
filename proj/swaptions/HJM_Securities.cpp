@@ -275,7 +275,7 @@ int main(int argc, char *argv[])
 
 #ifdef ENABLE_OPENCL
     cl_int result;
-    int output[nSwaptions*16];
+    int output[nSwaptions];  //debug
 
     // OpenCL //
     
@@ -394,8 +394,8 @@ int main(int argc, char *argv[])
 
     result = clFinish(command_queue);
     if(result != CL_SUCCESS) printOpenCLError("clFinish", result);
-    
-    for(int i=0; i<nSwaptions*16; i++)
+
+    for(int i=0; i<nSwaptions; i++)
     {
         printf("%d\n", output[i]);
     }
