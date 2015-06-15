@@ -12,6 +12,14 @@ ifdef version
     DEF := $(DEF) -DENABLE_THREADS -DTBB_VERSION
     LIBS := $(LIBS) -ltbb
   endif
+  ifeq "$(version)" "cpu"
+    DEF := $(DEF) -DENABLE_OPENCL -DOPENCL_CPU
+    LIBS := $(LIBS) -lOpenCL
+  endif
+  ifeq "$(version)" "gpu"
+    DEF := $(DEF) -DENABLE_OPENCL -DOPENCL_GPU
+    LIBS := $(LIBS) -lOpenCL
+  endif
 endif
 
 OBJS= CumNormalInv.o MaxFunction.o RanUnif.o nr_routines.o icdf.o \
