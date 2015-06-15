@@ -65,7 +65,7 @@ const char* kernel_name = "test";
 const char* program_src =
 "__kernel void test(__global int* output) {"
 "    int id = get_global_id(0);"
-"    output[id]=id;"
+"    output[id]=0;"
 "}";
 
 int done=0;
@@ -309,9 +309,10 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
     result = clFinish(command_queue);
     if(result != CL_SUCCESS) printOpenCLError("clFinish", result);
 
+    //debug check output
     for(int i=0; i<GLOBAL_WORK_ITEMS; i++)
     {
-        printf("%d\n", output[i]);
+        if(output[i]) printf("%d: %d\n", i, output[i]);
     }
 
 #endif  //ENABLE_OPENCL
