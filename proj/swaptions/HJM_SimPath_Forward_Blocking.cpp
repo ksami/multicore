@@ -68,6 +68,12 @@ const char* program_src =
 "    output[id]=id;"
 "}";
 
+int done=0;
+cl_platform_id platform;
+cl_device_id device;
+cl_context context;
+cl_command_queue command_queue;
+
 // OpenCL Errors //
 void printOpenCLError(char* functionName, cl_int error)
 {
@@ -191,12 +197,14 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
     // Specify the number of total work-items in a work-group
     size_t local[1] = { 16 };
 
+    if(done==0){
+      done=1;
     // Obtain a list of available OpenCL platforms
-    cl_platform_id platform;
+    //cl_platform_id platform;
     clGetPlatformIDs(1, &platform, NULL);
 
     // Obtain the list of available devices on the OpenCL platform
-    cl_device_id device;
+    //cl_device_id device;
 #ifdef OPENCL_CPU
     result = clGetDeviceIDs(platform, CL_DEVICE_TYPE_CPU, 1, &device, NULL);
 #else
@@ -205,16 +213,16 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
     if(result!=CL_SUCCESS) printOpenCLError("clGetDeviceIDs", result);
 
     // Create an OpenCL context on a GPU device
-    cl_context context;
+    //cl_context context;
     context = clCreateContext(0, 1, &device, NULL, NULL, &result);
     if(result!=CL_SUCCESS) printOpenCLError("clCreateContext", result);
 
     // Create a command queue and attach it to the compute device
     // (in-order queue)
-    cl_command_queue command_queue;
+    //cl_command_queue command_queue;
     command_queue = clCreateCommandQueue(context, device, 0, &result);
     if(result!=CL_SUCCESS) printOpenCLError("clCreateCommandQueue", result);
-
+    }
 
     // Allocate buffer memory objects
     cl_mem bufferOutput;
