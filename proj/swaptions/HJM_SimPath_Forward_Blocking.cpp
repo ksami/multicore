@@ -212,29 +212,29 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
     // Specify the number of total work-items in a work-group
     size_t local[1] = { 16 };
 
-    // Obtain a list of available OpenCL platforms
-    cl_platform_id platform;
-    clGetPlatformIDs(1, &platform, NULL);
+//     // Obtain a list of available OpenCL platforms
+//     cl_platform_id platform;
+//     clGetPlatformIDs(1, &platform, NULL);
 
-    // Obtain the list of available devices on the OpenCL platform
-    cl_device_id device;
-#ifdef OPENCL_CPU
-    result = clGetDeviceIDs(platform, CL_DEVICE_TYPE_CPU, 1, &device, NULL);
-#else
-    result = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 1, &device, NULL);
-#endif
-    if(result!=CL_SUCCESS) printOpenCLError("clGetDeviceIDs", result);
+//     // Obtain the list of available devices on the OpenCL platform
+//     cl_device_id device;
+// #ifdef OPENCL_CPU
+//     result = clGetDeviceIDs(platform, CL_DEVICE_TYPE_CPU, 1, &device, NULL);
+// #else
+//     result = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 1, &device, NULL);
+// #endif
+//     if(result!=CL_SUCCESS) printOpenCLError("clGetDeviceIDs", result);
 
-    // Create an OpenCL context on a GPU device
-    cl_context context;
-    context = clCreateContext(0, 1, &device, NULL, NULL, &result);
-    if(result!=CL_SUCCESS) printOpenCLError("clCreateContext", result);
+//     // Create an OpenCL context on a GPU device
+//     cl_context context;
+//     context = clCreateContext(0, 1, &device, NULL, NULL, &result);
+//     if(result!=CL_SUCCESS) printOpenCLError("clCreateContext", result);
 
-    // Create a command queue and attach it to the compute device
-    // (in-order queue)
-    cl_command_queue command_queue;
-    command_queue = clCreateCommandQueue(context, device, 0, &result);
-    if(result!=CL_SUCCESS) printOpenCLError("clCreateCommandQueue", result);
+//     // Create a command queue and attach it to the compute device
+//     // (in-order queue)
+//     cl_command_queue command_queue;
+//     command_queue = clCreateCommandQueue(context, device, 0, &result);
+//     if(result!=CL_SUCCESS) printOpenCLError("clCreateCommandQueue", result);
 
 
     // Allocate buffer memory objects
