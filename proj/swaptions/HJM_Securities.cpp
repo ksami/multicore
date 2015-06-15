@@ -13,6 +13,10 @@
 #include "HJM_Securities.h"
 #include "HJM_type.h"
 
+#ifdef ENABLE_OPENCL
+#include <CL/cl.h>
+#endif
+
 #ifdef ENABLE_THREADS
 #include <pthread.h>
 #define MAX_THREAD 1024
