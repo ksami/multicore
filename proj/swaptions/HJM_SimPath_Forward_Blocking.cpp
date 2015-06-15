@@ -179,14 +179,15 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
 //This function computes and stores an HJM Path for given inputs
 
 #ifdef ENABLE_OPENCL
+    int GLOBAL_WORK_ITEMS = BLOCKSIZE * iFactors * iN;
     cl_int result;
-    int output[nSwaptions];  //debug
+    int output[GLOBAL_WORK_ITEMS];  //debug
 
     // OpenCL //
     
     // The kernel index space is one dimensional
     // Specify the number of total work-items in the index space
-    size_t global[1] = { nSwaptions };
+    size_t global[1] = { GLOBAL_WORK_ITEMS };
     // Specify the number of total work-items in a work-group
     size_t local[1] = { 16 };
 
@@ -300,7 +301,7 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
     result = clFinish(command_queue);
     if(result != CL_SUCCESS) printOpenCLError("clFinish", result);
 
-    for(int i=0; i<nSwaptions; i++)
+    for(int i=0; i<GLOBAL_WORK_ITEMS; i++)
     {
         printf("%d\n", output[i]);
     }
