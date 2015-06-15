@@ -63,9 +63,14 @@ struct ParallelB {
 
 const char* kernel_name = "test";
 const char* program_src =
-"__kernel void test(__global int* output) {"
-"    int id = get_global_id(0);"
-"    output[id]=0;"
+"#define FTYPE double\n"
+"__kernel void test(__global int* output) {\n"
+"    int id = get_global_id(0);\n"
+"    FTYPE num = (double)(id%5)/3;\n"
+"    if(num>0)\n"
+"      output[id]=0;\n"
+"    else\n"
+"      output[id]=1;\n"
 "}";
 
 int done=0;
