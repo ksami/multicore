@@ -119,16 +119,17 @@ const char* program_src =
 "  \n"
 "} // end of CumNormalInv\n"
 "\n"
-"__kernel void op_serialB(__global FTYPE **pdZ, __global FTYPE **randZ, __global int* output, __global int* input)\n"
+"__kernel void op_serialB(__global FTYPE *pdZ, __global FTYPE *randZ, __global int* output, __global int* input)\n"
 "{\n"
 "  int BLOCKSIZE = input[0];\n"
 "  int iFactors = input[1];\n"
 "  int iN = input[2];\n"
+"  int rowsize = BLOCKSIZE * iN;\n"
 "  int id = get_global_id(0);\n"
 "\n"
 "  for(int l=0;l<=iFactors-1;++l){\n"
 "    for(int j=id/BLOCKSIZE*iN; j<(id+1)/BLOCKSIZE*iN; j++){\n"
-"        pdZ[l][j]= CumNormalInv(randZ[l][j]);  \n"
+"        pdZ[(l*rowsize)+j]= CumNormalInv(randZ[(l*rowsize)+j]);  \n"
 "    }\n"
 "  }\n"
 "}\n";
@@ -400,7 +401,7 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
         cl_mem bufferOutput;
         cl_mem bufferInput;
         cl_mem bufferpdZ;
-        cl_mem bufferrandZ
+        cl_mem bufferrandZ;
         
         size_t sizeOutput = GLOBAL_WORK_ITEMS * sizeof(int);
         size_t sizeInput = 4 * sizeof(int);
