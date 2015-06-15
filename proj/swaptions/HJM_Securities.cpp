@@ -275,7 +275,7 @@ int main(int argc, char *argv[])
 
 #ifdef ENABLE_OPENCL
     cl_int result;
-    int output[nSwaptions];  //debug
+    int output[nSwaptions];
 
     // OpenCL //
     
