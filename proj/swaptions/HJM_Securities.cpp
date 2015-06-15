@@ -53,9 +53,9 @@ int chunksize;
 #ifdef ENABLE_OPENCL
 const char* kernel_name = "test";
 const char* program_src =
-"__kernel void test() {"
+"__kernel void test(__global int* output) {"
 "    int id = get_global_id(0);"
-"    printf(\"%d\n\",id);"
+"    output[id]=id;"
 "}";
 
 // OpenCL Errors //
@@ -275,6 +275,7 @@ int main(int argc, char *argv[])
 
 #ifdef ENABLE_OPENCL
     cl_int result;
+    int output[nSwaptions*16];
 
     // OpenCL //
     
@@ -309,16 +310,20 @@ int main(int argc, char *argv[])
     if(result!=CL_SUCCESS) printOpenCLError("clCreateCommandQueue", result);
 
 
-    // // Allocate buffer memory objects
+    // Allocate buffer memory objects
+    cl_mem bufferOutput;
     // cl_mem bufferData;
     // cl_mem bufferCentroids;
     // cl_mem bufferPartitioned;
 
+    size_t sizeOutput = nSwaptions * 16 * sizeof(int);
     // size_t sizeData, sizeCentroids, sizePartitioned;
     // sizeData = data_n * sizeof(Point);
     // sizeCentroids = class_n * sizeof(Point);
     // sizePartitioned = data_n * sizeof(int);
 
+    bufferOutput = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeOutput, NULL, &result);
+    if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
     // bufferData = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeData, NULL, &result);
     // bufferCentroids = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeCentroids, NULL, &result);
     // bufferPartitioned = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizePartitioned, NULL, &result);
@@ -369,18 +374,31 @@ int main(int argc, char *argv[])
     if(result!=CL_SUCCESS) printOpenCLError("clCreateKernel", result);
         
 
-    // // Set the arguments of the kernel
+    // Set the arguments of the kernel
+    clSetKernelArg(kernel, 0, sizeof(cl_mem), (void*) &bufferOutput);
     // clSetKernelArg(kernel, 0, sizeof(cl_mem), (void*) &bufferData);
     // clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*) &bufferCentroids);
     // clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*) &bufferPartitioned);
     
-    // // Copy the input vectors to the corresponding buffers
-    // result = clEnqueueWriteBuffer(command_queue, bufferData, CL_FALSE, 0, sizeData, data, 0, NULL, NULL);
+    // Copy the input vectors to the corresponding buffers
+    // result = clEnqueueWriteBuffer(command_queue, bufferOutput, CL_FALSE, 0, sizeOutput, output, 0, NULL, NULL);
+    // if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
     
     // Execute the kernel
     result = clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL, global, local, 0, NULL, NULL);
     if(result!=CL_SUCCESS) printOpenCLError("clEnqueueNDRangeKernel", result);
     
+    // Copy the result from bufferOutput to output
+    result = clEnqueueReadBuffer(command_queue, bufferOutput, CL_TRUE, 0, sizeOutput, output, 0, NULL, NULL);
+    if(result != CL_SUCCESS) printOpenCLError("clEnqueueReadBuffer", result);
+
+    result = clFinish(command_queue);
+    if(result != CL_SUCCESS) printOpenCLError("clFinish", result);
+    
+    for(int i=0; i<nSwaptions*16; i++)
+    {
+        printf("%d\n", output[i]);
+    }
 
 #endif  //ENABLE_OPENCL
 
