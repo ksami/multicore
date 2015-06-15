@@ -15,8 +15,19 @@ int Discount_Factors_opt(FTYPE *pdDiscountFactors, int iN, FTYPE dYears, FTYPE *
 
 int HJM_SimPath_Forward_Blocking_SSE(FTYPE **ppdHJMPath, int iN, int iFactors, FTYPE dYears, FTYPE *pdForward, FTYPE *pdTotalDrift,
 			    FTYPE **ppdFactors, long *lRndSeed, int BLOCKSIZE);
+
+#ifdef ENABLE_OPENCL
+#include <CL/cl.h>
+int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath, int iN, int iFactors, FTYPE dYears, FTYPE *pdForward, FTYPE *pdTotalDrift,
+			    FTYPE **ppdFactors, long *lRndSeed, int BLOCKSIZE,
+			    cl_platform_id *pplatform,
+			    cl_device_id *pdevice,
+			    cl_context *pcontext,
+			    cl_command_queue *pcommand_queue);
+#else
 int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath, int iN, int iFactors, FTYPE dYears, FTYPE *pdForward, FTYPE *pdTotalDrift,
 			    FTYPE **ppdFactors, long *lRndSeed, int BLOCKSIZE);
+#endif
 
 
 int Discount_Factors_Blocking(FTYPE *pdDiscountFactors, int iN, FTYPE dYears, FTYPE *pdRatePath, int BLOCKSIZE);
@@ -44,6 +55,32 @@ int HJM_Swaption_Blocking_SSE(FTYPE *pdSwaptionPrice, //Output vector that will 
 			      long iRndSeed, 
 			      long lTrials, int blocksize, int tid);
  
+#ifdef ENABLE_OPENCL
+int HJM_Swaption_Blocking(FTYPE *pdSwaptionPrice, //Output vector that will store simulation results in the form:
+			                              //Swaption Price
+			                              //Swaption Standard Error
+			      //Swaption Parameters 
+			      FTYPE dStrike,				  
+			      FTYPE dCompounding,     //Compounding convention used for quoting the strike (0 => continuous,
+			      //0.5 => semi-annual, 1 => annual).
+			      FTYPE dMaturity,	      //Maturity of the swaption (time to expiration)
+			      FTYPE dTenor,	      //Tenor of the swap
+			      FTYPE dPaymentInterval, //frequency of swap payments e.g. dPaymentInterval = 0.5 implies a swap payment every half
+		                              //year
+			      //HJM Framework Parameters (please refer HJM.cpp for explanation of variables and functions)
+			      int iN,						
+			      int iFactors, 
+			      FTYPE dYears, 
+			      FTYPE *pdYield, 
+			      FTYPE **ppdFactors,
+			      //Simulation Parameters
+			      long iRndSeed, 
+			      long lTrials, int blocksize, int tid,
+			      cl_platform_id *platform,
+			      cl_device_id *device,
+			      cl_context *context,
+			      cl_command_queue *command_queue);
+#else
 int HJM_Swaption_Blocking(FTYPE *pdSwaptionPrice, //Output vector that will store simulation results in the form:
 			                              //Swaption Price
 			                              //Swaption Standard Error
@@ -64,6 +101,7 @@ int HJM_Swaption_Blocking(FTYPE *pdSwaptionPrice, //Output vector that will stor
 			      //Simulation Parameters
 			      long iRndSeed, 
 			      long lTrials, int blocksize, int tid);
+#endif  //ENABLE_OPENCL
 /*
 extern "C" FTYPE *dvector( long nl, long nh );
 extern "C" FTYPE **dmatrix( long nrl, long nrh, long ncl, long nch );
