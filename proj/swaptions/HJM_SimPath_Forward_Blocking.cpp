@@ -57,8 +57,8 @@ struct ParallelB {
 #endif // TBB_VERSION
 
 
-
 #ifdef ENABLE_OPENCL
+
 #include <CL/cl.h>
 
 const char* kernel_name = "test";
@@ -152,7 +152,6 @@ void printOpenCLError(char* functionName, cl_int error)
 #endif  //ENABLE_OPENCL
 
 
-
 void serialB(FTYPE **pdZ, FTYPE **randZ, int BLOCKSIZE, int iN, int iFactors)
 {
 
@@ -166,6 +165,21 @@ void serialB(FTYPE **pdZ, FTYPE **randZ, int BLOCKSIZE, int iN, int iFactors)
   }
 }
 
+#ifdef ENABLE_OPENCL
+int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores generated HJM path (Output)
+                 int iN,                    //Number of time-steps
+                 int iFactors,          //Number of factors in the HJM framework
+                 FTYPE dYears,          //Number of years
+                 FTYPE *pdForward,      //t=0 Forward curve
+                 FTYPE *pdTotalDrift,   //Vector containing total drift corrections for different maturities
+                 FTYPE **ppdFactors,    //Factor volatilities
+                 long *lRndSeed,            //Random number seed
+                 int BLOCKSIZE,
+                 cl_platform_id *pplatform,
+                 cl_device_id *pdevice,
+                 cl_context *pcontext,
+                 cl_command_queue *pcommand_queue)
+#else
 int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores generated HJM path (Output)
                  int iN,                    //Number of time-steps
                  int iFactors,          //Number of factors in the HJM framework
@@ -175,10 +189,17 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
                  FTYPE **ppdFactors,    //Factor volatilities
                  long *lRndSeed,            //Random number seed
                  int BLOCKSIZE)
-{   
+#endif  //ENABLE_OPENCL
+
+{
 //This function computes and stores an HJM Path for given inputs
 
 #ifdef ENABLE_OPENCL
+    cl_platform_id platform = *pplatform;
+    cl_device_id device = *pdevice;
+    cl_context context = *pcontext;
+    cl_command_queue command_queue = *pcommand_queue;
+    
     int GLOBAL_WORK_ITEMS = 128;
     cl_int result;
     int output[GLOBAL_WORK_ITEMS];  //debug

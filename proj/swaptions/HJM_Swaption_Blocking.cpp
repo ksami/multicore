@@ -12,6 +12,11 @@
 #include "HJM_type.h"
 
 
+#ifdef ENABLE_OPENCL
+#include <CL/cl.h>
+
+
+
 int HJM_Swaption_Blocking(FTYPE *pdSwaptionPrice, //Output vector that will store simulation results in the form:
         //Swaption Price
         //Swaption Standard Error
@@ -32,8 +37,34 @@ int HJM_Swaption_Blocking(FTYPE *pdSwaptionPrice, //Output vector that will stor
         //Simulation Parameters
         long iRndSeed, 
         long lTrials,
-        int BLOCKSIZE, int tid)
-  
+        int BLOCKSIZE, int tid,
+        cl_platform_id *platform,
+        cl_device_id *device,
+        cl_context *context,
+        cl_command_queue *command_queue)
+#else 
+int HJM_Swaption_Blocking(FTYPE *pdSwaptionPrice, //Output vector that will store simulation results in the form:
+        //Swaption Price
+        //Swaption Standard Error
+        //Swaption Parameters 
+        FTYPE dStrike,          
+        FTYPE dCompounding,     //Compounding convention used for quoting the strike (0 => continuous,
+        //0.5 => semi-annual, 1 => annual).
+        FTYPE dMaturity,        //Maturity of the swaption (time to expiration)
+        FTYPE dTenor,       //Tenor of the swap
+        FTYPE dPaymentInterval, //frequency of swap payments e.g. dPaymentInterval = 0.5 implies a swap payment every half
+        //year
+        //HJM Framework Parameters (please refer HJM.cpp for explanation of variables and functions)
+        int iN,           
+        int iFactors, 
+        FTYPE dYears, 
+        FTYPE *pdYield, 
+        FTYPE **ppdFactors,
+        //Simulation Parameters
+        long iRndSeed, 
+        long lTrials,
+        int BLOCKSIZE, int tid) 
+#endif  //ENABLE_OPENCL
 {
   int iSuccess = 0;
   int i; 
@@ -150,13 +181,13 @@ int HJM_Swaption_Blocking(FTYPE *pdSwaptionPrice, //Output vector that will stor
 
   //TODO: BLOCKSIZE=16, iN=11, iFactors=3,
   //      iSwapVectorLength=9, lTrials=no. of simulations
-  //long functions: HJM_SimPath_Forward_Blocking
+  //long functions: HJM_SimPath_Forward_Blocking, Discount_Factors_Blocking
   //Simulations begin:
   for (l=0;l<=lTrials-1;l+=BLOCKSIZE) {
 
 
     //For each trial a new HJM Path is generated
-    iSuccess = HJM_SimPath_Forward_Blocking(ppdHJMPath, iN, iFactors, dYears, pdForward, pdTotalDrift,ppdFactors, &iRndSeed, BLOCKSIZE); /* GC: 51% of the time goes here */
+    iSuccess = HJM_SimPath_Forward_Blocking(ppdHJMPath, iN, iFactors, dYears, pdForward, pdTotalDrift,ppdFactors, &iRndSeed, BLOCKSIZE, platform, device, context, command_queue); /* GC: 51% of the time goes here */
     if (iSuccess!=1)
       return iSuccess;
     

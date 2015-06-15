@@ -13,6 +13,14 @@
 #include "HJM_Securities.h"
 #include "HJM_type.h"
 
+#ifdef ENABLE_OPENCL
+#include <CL/cl.h>
+cl_platform_id *platform;
+cl_device_id *device;
+cl_context *context;
+cl_command_queue *command_queue;
+#endif
+
 #ifdef ENABLE_THREADS
 #include <pthread.h>
 #define MAX_THREAD 1024
@@ -84,12 +92,21 @@ void * worker(void *arg){
         end = nSwaptions;
 
     for(int i=beg; i < end; i++) {
+#ifdef ENABLE_OPENCL
+        int iSuccess = HJM_Swaption_Blocking(pdSwaptionPrice,  swaptions[i].dStrike, 
+            swaptions[i].dCompounding, swaptions[i].dMaturity, 
+            swaptions[i].dTenor, swaptions[i].dPaymentInterval,
+            swaptions[i].iN, swaptions[i].iFactors, swaptions[i].dYears, 
+            swaptions[i].pdYield, swaptions[i].ppdFactors,
+            100, NUM_TRIALS, BLOCK_SIZE, 0, platform, device, context, command_queue);
+#else
         int iSuccess = HJM_Swaption_Blocking(pdSwaptionPrice,  swaptions[i].dStrike, 
             swaptions[i].dCompounding, swaptions[i].dMaturity, 
             swaptions[i].dTenor, swaptions[i].dPaymentInterval,
             swaptions[i].iN, swaptions[i].iFactors, swaptions[i].dYears, 
             swaptions[i].pdYield, swaptions[i].ppdFactors,
             100, NUM_TRIALS, BLOCK_SIZE, 0);
+#endif  //ENABLE_OPENCL
         assert(iSuccess == 1);
         swaptions[i].dSimSwaptionMeanPrice = pdSwaptionPrice[0];
         swaptions[i].dSimSwaptionStdError = pdSwaptionPrice[1];
@@ -177,6 +194,35 @@ int main(int argc, char *argv[])
       exit(1);
     }
 #endif //ENABLE_THREADS
+
+
+#ifdef ENABLE_OPENCL
+
+    cl_int result;
+    // OpenCL //
+    
+    // Obtain a list of available OpenCL platforms
+    clGetPlatformIDs(1, platform, NULL);
+
+    // Obtain the list of available devices on the OpenCL platform
+#ifdef OPENCL_CPU
+    result = clGetDeviceIDs(*platform, CL_DEVICE_TYPE_CPU, 1, device, NULL);
+#else
+    result = clGetDeviceIDs(*platform, CL_DEVICE_TYPE_GPU, 1, device, NULL);
+#endif
+    if(result!=CL_SUCCESS) printOpenCLError("clGetDeviceIDs", result);
+
+    // Create an OpenCL context on a GPU device
+    *context = clCreateContext(0, 1, device, NULL, NULL, &result);
+    if(result!=CL_SUCCESS) printOpenCLError("clCreateContext", result);
+
+    // Create a command queue and attach it to the compute device
+    // (in-order queue)
+    *command_queue = clCreateCommandQueue(*context, *device, 0, &result);
+    if(result!=CL_SUCCESS) printOpenCLError("clCreateCommandQueue", result);
+
+
+#endif  //ENABLE_OPENCL
 
 
     // initialize input dataset
