@@ -55,7 +55,7 @@ const char* kernel_name = "test";
 const char* program_src =
 "__kernel void test() {"
 "    int id = get_global_id(0);"
-"    printf('%d\n',id);"
+"    printf(\"%d\n\",id);"
 "}";
 
 // OpenCL Errors //
@@ -65,78 +65,78 @@ void printOpenCLError(char* functionName, cl_int error)
     printf(": ");
     switch(error){
         // run-time and JIT compiler errors
-        case 0: printf("CL_SUCCESS");
-        case -1: printf("CL_DEVICE_NOT_FOUND");
-        case -2: printf("CL_DEVICE_NOT_AVAILABLE");
-        case -3: printf("CL_COMPILER_NOT_AVAILABLE");
-        case -4: printf("CL_MEM_OBJECT_ALLOCATION_FAILURE");
-        case -5: printf("CL_OUT_OF_RESOURCES");
-        case -6: printf("CL_OUT_OF_HOST_MEMORY");
-        case -7: printf("CL_PROFILING_INFO_NOT_AVAILABLE");
-        case -8: printf("CL_MEM_COPY_OVERLAP");
-        case -9: printf("CL_IMAGE_FORMAT_MISMATCH");
-        case -10: printf("CL_IMAGE_FORMAT_NOT_SUPPORTED");
-        case -11: printf("CL_BUILD_PROGRAM_FAILURE");
-        case -12: printf("CL_MAP_FAILURE");
-        case -13: printf("CL_MISALIGNED_SUB_BUFFER_OFFSET");
-        case -14: printf("CL_EXEC_STATUS_ERROR_FOR_EVENTS_IN_WAIT_LIST");
-        case -15: printf("CL_COMPILE_PROGRAM_FAILURE");
-        case -16: printf("CL_LINKER_NOT_AVAILABLE");
-        case -17: printf("CL_LINK_PROGRAM_FAILURE");
-        case -18: printf("CL_DEVICE_PARTITION_FAILED");
-        case -19: printf("CL_KERNEL_ARG_INFO_NOT_AVAILABLE");
+        case 0: printf("CL_SUCCESS"); break;
+        case -1: printf("CL_DEVICE_NOT_FOUND"); break;
+        case -2: printf("CL_DEVICE_NOT_AVAILABLE"); break;
+        case -3: printf("CL_COMPILER_NOT_AVAILABLE"); break;
+        case -4: printf("CL_MEM_OBJECT_ALLOCATION_FAILURE"); break;
+        case -5: printf("CL_OUT_OF_RESOURCES"); break;
+        case -6: printf("CL_OUT_OF_HOST_MEMORY"); break;
+        case -7: printf("CL_PROFILING_INFO_NOT_AVAILABLE"); break;
+        case -8: printf("CL_MEM_COPY_OVERLAP"); break;
+        case -9: printf("CL_IMAGE_FORMAT_MISMATCH"); break;
+        case -10: printf("CL_IMAGE_FORMAT_NOT_SUPPORTED"); break;
+        case -11: printf("CL_BUILD_PROGRAM_FAILURE"); break;
+        case -12: printf("CL_MAP_FAILURE"); break;
+        case -13: printf("CL_MISALIGNED_SUB_BUFFER_OFFSET"); break;
+        case -14: printf("CL_EXEC_STATUS_ERROR_FOR_EVENTS_IN_WAIT_LIST"); break;
+        case -15: printf("CL_COMPILE_PROGRAM_FAILURE"); break;
+        case -16: printf("CL_LINKER_NOT_AVAILABLE"); break;
+        case -17: printf("CL_LINK_PROGRAM_FAILURE"); break;
+        case -18: printf("CL_DEVICE_PARTITION_FAILED"); break;
+        case -19: printf("CL_KERNEL_ARG_INFO_NOT_AVAILABLE"); break;
 
         // compile-time errors
-        case -30: printf("CL_INVALID_VALUE");
-        case -31: printf("CL_INVALID_DEVICE_TYPE");
-        case -32: printf("CL_INVALID_PLATFORM");
-        case -33: printf("CL_INVALID_DEVICE");
-        case -34: printf("CL_INVALID_CONTEXT");
-        case -35: printf("CL_INVALID_QUEUE_PROPERTIES");
-        case -36: printf("CL_INVALID_COMMAND_QUEUE");
-        case -37: printf("CL_INVALID_HOST_PTR");
-        case -38: printf("CL_INVALID_MEM_OBJECT");
-        case -39: printf("CL_INVALID_IMAGE_FORMAT_DESCRIPTOR");
-        case -40: printf("CL_INVALID_IMAGE_SIZE");
-        case -41: printf("CL_INVALID_SAMPLER");
-        case -42: printf("CL_INVALID_BINARY");
-        case -43: printf("CL_INVALID_BUILD_OPTIONS");
-        case -44: printf("CL_INVALID_PROGRAM");
-        case -45: printf("CL_INVALID_PROGRAM_EXECUTABLE");
-        case -46: printf("CL_INVALID_KERNEL_NAME");
-        case -47: printf("CL_INVALID_KERNEL_DEFINITION");
-        case -48: printf("CL_INVALID_KERNEL");
-        case -49: printf("CL_INVALID_ARG_INDEX");
-        case -50: printf("CL_INVALID_ARG_VALUE");
-        case -51: printf("CL_INVALID_ARG_SIZE");
-        case -52: printf("CL_INVALID_KERNEL_ARGS");
-        case -53: printf("CL_INVALID_WORK_DIMENSION");
-        case -54: printf("CL_INVALID_WORK_GROUP_SIZE");
-        case -55: printf("CL_INVALID_WORK_ITEM_SIZE");
-        case -56: printf("CL_INVALID_GLOBAL_OFFSET");
-        case -57: printf("CL_INVALID_EVENT_WAIT_LIST");
-        case -58: printf("CL_INVALID_EVENT");
-        case -59: printf("CL_INVALID_OPERATION");
-        case -60: printf("CL_INVALID_GL_OBJECT");
-        case -61: printf("CL_INVALID_BUFFER_SIZE");
-        case -62: printf("CL_INVALID_MIP_LEVEL");
-        case -63: printf("CL_INVALID_GLOBAL_WORK_SIZE");
-        case -64: printf("CL_INVALID_PROPERTY");
-        case -65: printf("CL_INVALID_IMAGE_DESCRIPTOR");
-        case -66: printf("CL_INVALID_COMPILER_OPTIONS");
-        case -67: printf("CL_INVALID_LINKER_OPTIONS");
-        case -68: printf("CL_INVALID_DEVICE_PARTITION_COUNT");
+        case -30: printf("CL_INVALID_VALUE"); break;
+        case -31: printf("CL_INVALID_DEVICE_TYPE"); break;
+        case -32: printf("CL_INVALID_PLATFORM"); break;
+        case -33: printf("CL_INVALID_DEVICE"); break;
+        case -34: printf("CL_INVALID_CONTEXT"); break;
+        case -35: printf("CL_INVALID_QUEUE_PROPERTIES"); break;
+        case -36: printf("CL_INVALID_COMMAND_QUEUE"); break;
+        case -37: printf("CL_INVALID_HOST_PTR"); break;
+        case -38: printf("CL_INVALID_MEM_OBJECT"); break;
+        case -39: printf("CL_INVALID_IMAGE_FORMAT_DESCRIPTOR"); break;
+        case -40: printf("CL_INVALID_IMAGE_SIZE"); break;
+        case -41: printf("CL_INVALID_SAMPLER"); break;
+        case -42: printf("CL_INVALID_BINARY"); break;
+        case -43: printf("CL_INVALID_BUILD_OPTIONS"); break;
+        case -44: printf("CL_INVALID_PROGRAM"); break;
+        case -45: printf("CL_INVALID_PROGRAM_EXECUTABLE"); break;
+        case -46: printf("CL_INVALID_KERNEL_NAME"); break;
+        case -47: printf("CL_INVALID_KERNEL_DEFINITION"); break;
+        case -48: printf("CL_INVALID_KERNEL"); break;
+        case -49: printf("CL_INVALID_ARG_INDEX"); break;
+        case -50: printf("CL_INVALID_ARG_VALUE"); break;
+        case -51: printf("CL_INVALID_ARG_SIZE"); break;
+        case -52: printf("CL_INVALID_KERNEL_ARGS"); break;
+        case -53: printf("CL_INVALID_WORK_DIMENSION"); break;
+        case -54: printf("CL_INVALID_WORK_GROUP_SIZE"); break;
+        case -55: printf("CL_INVALID_WORK_ITEM_SIZE"); break;
+        case -56: printf("CL_INVALID_GLOBAL_OFFSET"); break;
+        case -57: printf("CL_INVALID_EVENT_WAIT_LIST"); break;
+        case -58: printf("CL_INVALID_EVENT"); break;
+        case -59: printf("CL_INVALID_OPERATION"); break;
+        case -60: printf("CL_INVALID_GL_OBJECT"); break;
+        case -61: printf("CL_INVALID_BUFFER_SIZE"); break;
+        case -62: printf("CL_INVALID_MIP_LEVEL"); break;
+        case -63: printf("CL_INVALID_GLOBAL_WORK_SIZE"); break;
+        case -64: printf("CL_INVALID_PROPERTY"); break;
+        case -65: printf("CL_INVALID_IMAGE_DESCRIPTOR"); break;
+        case -66: printf("CL_INVALID_COMPILER_OPTIONS"); break;
+        case -67: printf("CL_INVALID_LINKER_OPTIONS"); break;
+        case -68: printf("CL_INVALID_DEVICE_PARTITION_COUNT"); break;
 
         // extension errors
-        case -1000: printf("CL_INVALID_GL_SHAREGROUP_REFERENCE_KHR");
-        case -1001: printf("CL_PLATFORM_NOT_FOUND_KHR");
-        case -1002: printf("CL_INVALID_D3D10_DEVICE_KHR");
-        case -1003: printf("CL_INVALID_D3D10_RESOURCE_KHR");
-        case -1004: printf("CL_D3D10_RESOURCE_ALREADY_ACQUIRED_KHR");
-        case -1005: printf("CL_D3D10_RESOURCE_NOT_ACQUIRED_KHR");
-        default: printf("Unknown OpenCL error");
-        }
-        printf("\n");
+        case -1000: printf("CL_INVALID_GL_SHAREGROUP_REFERENCE_KHR"); break;
+        case -1001: printf("CL_PLATFORM_NOT_FOUND_KHR"); break;
+        case -1002: printf("CL_INVALID_D3D10_DEVICE_KHR"); break;
+        case -1003: printf("CL_INVALID_D3D10_RESOURCE_KHR"); break;
+        case -1004: printf("CL_D3D10_RESOURCE_ALREADY_ACQUIRED_KHR"); break;
+        case -1005: printf("CL_D3D10_RESOURCE_NOT_ACQUIRED_KHR"); break;
+        default: printf("Unknown OpenCL error"); break;
+    }
+    printf("\n");
 }
 // --OpenCL errors-- //
 #endif  //ENABLE_OPENCL
