@@ -179,7 +179,7 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
 //This function computes and stores an HJM Path for given inputs
 
 #ifdef ENABLE_OPENCL
-    int GLOBAL_WORK_ITEMS = BLOCKSIZE * iFactors * iN;
+    int GLOBAL_WORK_ITEMS = 128;
     cl_int result;
     int output[GLOBAL_WORK_ITEMS];  //debug
 
