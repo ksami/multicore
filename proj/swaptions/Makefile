@@ -14,11 +14,11 @@ ifdef version
   endif
   ifeq "$(version)" "cpu"
     DEF := $(DEF) -DENABLE_OPENCL -DOPENCL_CPU
-    LIBS := $(LIBS) -lOpenCL
+    CXXFLAGS := $(CXXFLAGS) -lOpenCL
   endif
   ifeq "$(version)" "gpu"
     DEF := $(DEF) -DENABLE_OPENCL -DOPENCL_GPU
-    LIBS := $(LIBS) -lOpenCL
+    CXXFLAGS := $(CXXFLAGS) -lOpenCL
   endif
 endif
 
