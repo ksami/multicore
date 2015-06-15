@@ -222,7 +222,7 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
     // cl_mem bufferCentroids;
     // cl_mem bufferPartitioned;
 
-    size_t sizeOutput = nSwaptions * 16 * sizeof(int);
+    size_t sizeOutput = GLOBAL_WORK_ITEMS * sizeof(int);
     // size_t sizeData, sizeCentroids, sizePartitioned;
     // sizeData = data_n * sizeof(Point);
     // sizeCentroids = class_n * sizeof(Point);
