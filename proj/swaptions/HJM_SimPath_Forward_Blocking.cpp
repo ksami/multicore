@@ -130,8 +130,8 @@ const char* program_src =
 "\n"
 "  for(int i=id;i<iFactors+id;i++){\n"
 "        pdZ[i]= CumNormalInv(randZ[i]);  \n"
+"        if(pdZ[i] > 9999999 || pdZ[i] < 0) output[id] = pdZ[i];\n"
 "  }\n"
-"  output[id] = 0;\n"
 "}\n";
 
 cl_platform_id platform;
@@ -455,11 +455,11 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
         if(result != CL_SUCCESS) printOpenCLError("clEnqueueReadBuffer", result);
 
 
-        // //debug check output
-        // for(int i=0; i<GLOBAL_WORK_ITEMS; i++)
-        // {
-        //     if(output[i]) printf("%d: %d\n", i, output[i]);
-        // }
+        //debug check output
+        for(int i=0; i<GLOBAL_WORK_ITEMS; i++)
+        {
+            if(output[i]) printf("%d: %d\n", i, output[i]);
+        }
         
     #else
     /* 18% of the total executition time */
