@@ -471,10 +471,11 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
     if(result != CL_SUCCESS) printOpenCLError("clEnqueueReadBuffer", result);
     
     // debug check output
-    // for(int i=0; i<GLOBAL_WORK_ITEMS; i++)
-    // {
-    //    if(output[i]) printf("%d: %lf\n", i, output[i]);
-    // }
+    for(int i=0; i<GLOBAL_WORK_ITEMS; i++)
+    {
+       // if(output[i]) printf("%d: %lf\n", i, output[i]);
+       printf("%d: %lf\n", i, randZ[i]);
+    }
 #else
             for(int i=0; i<BLOCKSIZE*iN*iFactors; i++){
               randZ[i] = RanUnif(lRndSeed);
