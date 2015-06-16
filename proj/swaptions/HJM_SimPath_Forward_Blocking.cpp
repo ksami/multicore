@@ -120,17 +120,18 @@ const char* program_src =
 "  \n"
 "} // end of CumNormalInv\n"
 "\n"
-"__kernel void op_serialB(__global FTYPE *pdZ, __global FTYPE *randZ, __global int* output, __global int* input)\n"
+"__kernel void op_serialB(__global FTYPE *pdZ, __global FTYPE *randZ, __global FTYPE* output, __global int* input)\n"
 "{\n"
+"  barrier(CLK_GLOBAL_MEM_FENCE);\n"
 "  int BLOCKSIZE = input[0];\n"
 "  int iFactors = input[1];\n"
 "  int iN = input[2];\n"
 "  int rowsize = BLOCKSIZE * iN;\n"
 "  int id = get_global_id(0);\n"
 "\n"
-"  for(int i=id;i<iFactors+id;i++){\n"
+"  for(int i=id*iFactors;i<(id+1)*iFactors;i++){\n"
 "        pdZ[i]= CumNormalInv(randZ[i]);  \n"
-"        if(pdZ[i] > 9999999 || pdZ[i] < 0) output[id] = pdZ[i];\n"
+"        output[id] = CumNormalInv(randZ[i]);\n"
 "  }\n"
 "}\n";
 
@@ -262,8 +263,14 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
 #ifdef ENABLE_OPENCL
     int GLOBAL_WORK_ITEMS = 176;
     cl_int result;
-    int output[GLOBAL_WORK_ITEMS];  //debug
+    FTYPE output[GLOBAL_WORK_ITEMS];  //debug
     int input[4] = {0, 0, 0, 0};  //debug
+
+    for(int i=0; i<BLOCKSIZE*iN*iFactors; i++)
+    {
+        pdZ[i] = 0.0;
+        randZ[i] = 0.0;
+    }
 
     // OpenCL //
     
@@ -378,16 +385,19 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
     // =====================================================
     // sequentially generating random numbers
 
-    for(int b=0; b<BLOCKSIZE; b++){
-      for(int s=0; s<1; s++){
-        for (j=1;j<=iN-1;++j){
-          for (l=0;l<=iFactors-1;++l){
+    //for(int b=0; b<BLOCKSIZE; b++){
+      //for(int s=0; s<1; s++){
+        //for (j=1;j<=iN-1;++j){
+          //for (l=0;l<=iFactors-1;++l){
             //compute random number in exact same sequence
-            randZ[(l*BLOCKSIZE*iN) + BLOCKSIZE*j + b + s] = RanUnif(lRndSeed);  /* 10% of the total executition time */
+            //randZ[(l*BLOCKSIZE*iN) + BLOCKSIZE*j + b + s] = RanUnif(lRndSeed);  /* 10% of the total executition time */
+            for(int i=0; i<BLOCKSIZE*iN*iFactors; i++){
+              randZ[i] = RanUnif(lRndSeed);
+ //           printf("randZ: %d\n", (l*BLOCKSIZE*iN)+BLOCKSIZE*j+b+s);
           }
-        }
-      }
-    }
+        //}
+     // }
+    //}
 
     // =====================================================
     // shocks to hit various factors for forward curve at t
@@ -407,7 +417,7 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
         if(result!=CL_SUCCESS) printOpenCLError("clCreateKernel", result);
 
         // Allocate buffer memory objects        
-        sizeOutput = GLOBAL_WORK_ITEMS * sizeof(int);
+        sizeOutput = GLOBAL_WORK_ITEMS * sizeof(FTYPE);
         sizeInput = 4 * sizeof(int);
         sizepdZ = iFactors * iN * BLOCKSIZE * sizeof(FTYPE);
         sizerandZ = iFactors * iN * BLOCKSIZE * sizeof(FTYPE);
@@ -456,10 +466,10 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
 
 
         //debug check output
-        for(int i=0; i<GLOBAL_WORK_ITEMS; i++)
-        {
-            if(output[i]) printf("%d: %d\n", i, output[i]);
-        }
+        //for(int i=0; i<GLOBAL_WORK_ITEMS; i++)
+        //{
+        //    if(output[i]) printf("%d: %lf\n", i, output[i]);
+        //}
         
     #else
     /* 18% of the total executition time */
