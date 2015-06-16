@@ -135,12 +135,17 @@ const char* program_src =
 "  output[id] = 1;\n"
 "}\n";
 
-
 int done=0;
 cl_platform_id platform;
 cl_device_id device;
 cl_context context;
 cl_command_queue command_queue;
+cl_program program;
+cl_kernel kernel;
+cl_mem bufferOutput;
+cl_mem bufferInput;
+cl_mem bufferpdZ;
+cl_mem bufferrandZ;
 
 // OpenCL Errors //
 void printOpenCLError(char* functionName, cl_int error)
@@ -266,8 +271,9 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
     // Specify the number of total work-items in a work-group
     size_t local[1] = { 16 };
 
+
     if(done==0){
-      done=1;
+
     // Obtain a list of available OpenCL platforms
     //cl_platform_id platform;
     clGetPlatformIDs(1, &platform, NULL);
@@ -291,13 +297,12 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
     //cl_command_queue command_queue;
     command_queue = clCreateCommandQueue(context, device, 0, &result);
     if(result!=CL_SUCCESS) printOpenCLError("clCreateCommandQueue", result);
-    }
 
 
 
     // Create an OpenCL program object for the context 
     // and load the kernel source into the program object
-    cl_program program;
+
     size_t program_src_len = strlen(program_src);
     program = clCreateProgramWithSource(context, 1, (const char**) &program_src, &program_src_len, &result);
     if(result!=CL_SUCCESS) printOpenCLError("clCreateProgramWithSource", result);
@@ -333,6 +338,8 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
         fprintf(stderr,"clBuildProgram failed\n");
         exit(EXIT_FAILURE);
     }
+
+    }  //done
 
 #endif  //ENABLE_OPENCL
 
@@ -392,24 +399,17 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
 
 #else
     #ifdef ENABLE_OPENCL
-
+      if(done==0) {
         // Create a kernel object from the program
-        cl_kernel kernel;
         kernel = clCreateKernel(program, kernel_serialB, &result);
         if(result!=CL_SUCCESS) printOpenCLError("clCreateKernel", result);
 
-        // Allocate buffer memory objects
-        cl_mem bufferOutput;
-        cl_mem bufferInput;
-        cl_mem bufferpdZ;
-        cl_mem bufferrandZ;
-        
+        // Allocate buffer memory objects        
         size_t sizeOutput = GLOBAL_WORK_ITEMS * sizeof(int);
         size_t sizeInput = 4 * sizeof(int);
         size_t sizepdZ = iFactors * iN * BLOCKSIZE * sizeof(FTYPE);
         size_t sizerandZ = iFactors * iN * BLOCKSIZE * sizeof(FTYPE);
         
-
         bufferOutput = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeOutput, NULL, &result);
         if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
         bufferInput = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeInput, NULL, &result);
@@ -455,6 +455,8 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
             if(output[i]) printf("%d: %d\n", i, output[i]);
         }
 
+        done=1;
+      }  //done
     #else
 
     /* 18% of the total executition time */
