@@ -63,6 +63,7 @@ int done_serialB=0;
 #include <CL/cl.h>
 
 const char* name_serialB = "op_serialB";
+const char* name_randGen = "op_randGen";
 const char* program_src =
 "#define FTYPE double\n"
 "\n"
@@ -122,6 +123,7 @@ const char* program_src =
 "\n"
 "__kernel void op_serialB(__global FTYPE *pdZ, __global FTYPE *randZ, __global FTYPE* output, __global int* input)\n"
 "{\n"
+"  barrier(CL_GLOBAL_MEM_FENCE);\n"
 "  int BLOCKSIZE = input[0];\n"
 "  int iFactors = input[1];\n"
 "  int iN = input[2];\n"
@@ -132,6 +134,35 @@ const char* program_src =
 "        pdZ[i]= CumNormalInv(randZ[i]);  \n"
 "        output[id] = randZ[i];\n"
 "  }\n"
+"}\n"
+"\n"
+"FTYPE RanUnif( long *s )\n"
+"{\n"
+"  // uniform random number generator\n"
+"  long   ix, k1;\n"
+"  FTYPE dRes;\n"
+"  \n"
+"  ix = *s;\n"
+"  *s = ix+1;\n"
+"  ix *= 1513517L;\n"
+"  ix %= 2147483647L; \n"
+"  k1 = ix/127773L;\n"
+"  ix = 16807L*( ix - k1*127773L ) - k1 * 2836L;\n"
+"  if (ix < 0) ix = ix + 2147483647L;\n"
+"  //*s   = ix;\n"
+"  dRes = (ix * 4.656612875e-10);\n"
+"  return (dRes);\n"
+"  \n"
+"} // end of RanUnif\n"
+"\n"
+"__kernel op_randGen(__global FTYPE* randZ, __global int* input)\n"
+"{\n"
+"  int BLOCKSIZE = input[0];\n"
+"  int iFactors = input[1];\n"
+"  int iN = input[2];\n"
+"  for(int i=0; i<BLOCKSIZE*iN*iFactors; i++){\n"
+"    randZ[i] = RanUnif(lRndSeed);\n"
+"  }\n"
 "}\n";
 
 cl_platform_id platform;
@@ -140,6 +171,7 @@ cl_context context;
 cl_command_queue command_queue;
 cl_program program;
 cl_kernel kernel_serialB;
+cl_kernel kernel_randGen;
 size_t sizeOutput;
 size_t sizeInput;
 size_t sizepdZ;
@@ -347,6 +379,29 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
         exit(EXIT_FAILURE);
     }
 
+    // Create a kernel object from the program
+    kernel_serialB = clCreateKernel(program, name_serialB, &result);
+    if(result!=CL_SUCCESS) printOpenCLError("clCreateKernel", result);
+    kernel_randGen = clCreateKernel(program, name_randGen, &result);
+    if(result!=CL_SUCCESS) printOpenCLError("clCreateKernel", result);
+
+    // Allocate buffer memory objects        
+    sizeOutput = GLOBAL_WORK_ITEMS * sizeof(FTYPE);
+    sizeInput = 4 * sizeof(int);
+    sizepdZ = iFactors * iN * BLOCKSIZE * sizeof(FTYPE);
+    sizerandZ = iFactors * iN * BLOCKSIZE * sizeof(FTYPE);
+    
+    bufferOutput = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeOutput, NULL, &result);
+    if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
+    bufferInput = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeInput, NULL, &result);
+    if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
+    bufferpdZ = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizepdZ, NULL, &result);
+    if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
+    bufferrandZ = clCreateBuffer(context, CL_MEM_READ_WRITE, sizerandZ, NULL, &result);
+    if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
+    done_serialB=1;
+
+
     }  //done_serialB
 
 #endif  //ENABLE_OPENCL
@@ -390,10 +445,34 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
           //for (l=0;l<=iFactors-1;++l){
             //compute random number in exact same sequence
             //randZ[(l*BLOCKSIZE*iN) + BLOCKSIZE*j + b + s] = RanUnif(lRndSeed);  /* 10% of the total executition time */
+#ifdef ENABLE_OPENCL
+    input[0] = BLOCKSIZE;
+    input[1] = iFactors;
+    input[2] = iN;
+    clSetKernelArg(kernel_randGen, 0, sizeof(cl_mem), (void*) &bufferrandZ);
+    clSetKernelArg(kernel_randGen, 1, sizeof(cl_mem), (void*) &bufferInput);
+
+    // Set input
+    result = clEnqueueWriteBuffer(command_queue, bufferInput, CL_FALSE, 0, sizeInput, input, 0, NULL, NULL);
+    if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
+
+    // Execute the kernel_randGen
+    result = clEnqueueNDRangeKernel(command_queue, kernel_randGen, 1, NULL, global, local, 0, NULL, NULL);
+    if(result!=CL_SUCCESS) printOpenCLError("clEnqueueNDRangeKernel", result);
+    
+    // Wait for all commands in queue to finish
+    result = clFinish(command_queue);
+    if(result != CL_SUCCESS) printOpenCLError("clFinish", result);
+
+    // // Copy output
+    // result = clEnqueueReadBuffer(command_queue, bufferrandZ, CL_TRUE, 0, sizerandZ, randZ, 0, NULL, NULL);
+    // if(result != CL_SUCCESS) printOpenCLError("clEnqueueReadBuffer", result);
+
+#else
             for(int i=0; i<BLOCKSIZE*iN*iFactors; i++){
               randZ[i] = RanUnif(lRndSeed);
- //           printf("randZ: %d\n", (l*BLOCKSIZE*iN)+BLOCKSIZE*j+b+s);
-          }
+            }
+#endif  //ENABLE_OPENCL
         //}
      // }
     //}
@@ -410,28 +489,6 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
 
 #else
     #ifdef ENABLE_OPENCL
-      if(done_serialB==0) {
-        // Create a kernel object from the program
-        kernel_serialB = clCreateKernel(program, name_serialB, &result);
-        if(result!=CL_SUCCESS) printOpenCLError("clCreateKernel", result);
-
-        // Allocate buffer memory objects        
-        sizeOutput = GLOBAL_WORK_ITEMS * sizeof(FTYPE);
-        sizeInput = 4 * sizeof(int);
-        sizepdZ = iFactors * iN * BLOCKSIZE * sizeof(FTYPE);
-        sizerandZ = iFactors * iN * BLOCKSIZE * sizeof(FTYPE);
-        
-        bufferOutput = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeOutput, NULL, &result);
-        if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
-        bufferInput = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeInput, NULL, &result);
-        if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
-        bufferpdZ = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizepdZ, NULL, &result);
-        if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
-        bufferrandZ = clCreateBuffer(context, CL_MEM_READ_ONLY, sizerandZ, NULL, &result);
-        if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
-        done_serialB=1;
-      }  //done_serialB
-
 
         // Set the arguments of the kernel_serialB
         clSetKernelArg(kernel_serialB, 0, sizeof(cl_mem), (void*) &bufferpdZ);
@@ -441,13 +498,11 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
 
         
         // Copy the input vectors to the corresponding buffers
-        input[0] = BLOCKSIZE;
-        input[1] = iFactors;
-        input[2] = iN;
-        result = clEnqueueWriteBuffer(command_queue, bufferInput, CL_FALSE, 0, sizeInput, input, 0, NULL, NULL);
-        if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
-        result = clEnqueueWriteBuffer(command_queue, bufferrandZ, CL_FALSE, 0, sizerandZ, randZ, 0, NULL, NULL);
-        if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
+        // result = clEnqueueWriteBuffer(command_queue, bufferInput, CL_FALSE, 0, sizeInput, input, 0, NULL, NULL);
+        // if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
+        //unnecessary since data alr in buffer
+        // result = clEnqueueWriteBuffer(command_queue, bufferrandZ, CL_FALSE, 0, sizerandZ, randZ, 0, NULL, NULL);
+        // if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
         
         // Execute the kernel_serialB
         result = clEnqueueNDRangeKernel(command_queue, kernel_serialB, 1, NULL, global, local, 0, NULL, NULL);
