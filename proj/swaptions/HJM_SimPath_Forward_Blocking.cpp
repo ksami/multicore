@@ -467,14 +467,14 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
     // // Copy output
     result = clEnqueueReadBuffer(command_queue, bufferOutput, CL_TRUE, 0, sizeOutput, output, 0, NULL, NULL);
     if(result != CL_SUCCESS) printOpenCLError("clEnqueueReadBuffer", result);
-    // result = clEnqueueReadBuffer(command_queue, bufferrandZ, CL_TRUE, 0, sizerandZ, randZ, 0, NULL, NULL);
-    // if(result != CL_SUCCESS) printOpenCLError("clEnqueueReadBuffer", result);
+    result = clEnqueueReadBuffer(command_queue, bufferrandZ, CL_TRUE, 0, sizerandZ, randZ, 0, NULL, NULL);
+    if(result != CL_SUCCESS) printOpenCLError("clEnqueueReadBuffer", result);
     
     // debug check output
-    for(int i=0; i<GLOBAL_WORK_ITEMS; i++)
-    {
-       if(output[i]) printf("%d: %lf\n", i, output[i]);
-    }
+    // for(int i=0; i<GLOBAL_WORK_ITEMS; i++)
+    // {
+    //    if(output[i]) printf("%d: %lf\n", i, output[i]);
+    // }
 #else
             for(int i=0; i<BLOCKSIZE*iN*iFactors; i++){
               randZ[i] = RanUnif(lRndSeed);
@@ -505,11 +505,10 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
 
         
         // Copy the input vectors to the corresponding buffers
-        // result = clEnqueueWriteBuffer(command_queue, bufferInput, CL_FALSE, 0, sizeInput, input, 0, NULL, NULL);
-        // if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
-        //unnecessary since data alr in buffer
-        // result = clEnqueueWriteBuffer(command_queue, bufferrandZ, CL_FALSE, 0, sizerandZ, randZ, 0, NULL, NULL);
-        // if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
+        result = clEnqueueWriteBuffer(command_queue, bufferInput, CL_FALSE, 0, sizeInput, input, 0, NULL, NULL);
+        if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
+        result = clEnqueueWriteBuffer(command_queue, bufferrandZ, CL_FALSE, 0, sizerandZ, randZ, 0, NULL, NULL);
+        if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
         
         // Execute the kernel_serialB
         result = clEnqueueNDRangeKernel(command_queue, kernel_serialB, 1, NULL, global, local, 0, NULL, NULL);
