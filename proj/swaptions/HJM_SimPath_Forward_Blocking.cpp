@@ -123,7 +123,7 @@ const char* program_src =
 "\n"
 "__kernel void op_serialB(__global FTYPE *pdZ, __global FTYPE *randZ, __global FTYPE* output, __global int* input)\n"
 "{\n"
-"  barrier(CL_GLOBAL_MEM_FENCE);\n"
+"  barrier(CLK_GLOBAL_MEM_FENCE);\n"
 "  int BLOCKSIZE = input[0];\n"
 "  int iFactors = input[1];\n"
 "  int iN = input[2];\n"
@@ -155,14 +155,13 @@ const char* program_src =
 "  \n"
 "} // end of RanUnif\n"
 "\n"
-"__kernel op_randGen(__global FTYPE* randZ, __global int* input)\n"
+"__kernel void op_randGen(__global FTYPE* randZ, __global int* input)\n"
 "{\n"
 "  int BLOCKSIZE = input[0];\n"
 "  int iFactors = input[1];\n"
 "  int iN = input[2];\n"
-"  for(int i=0; i<BLOCKSIZE*iN*iFactors; i++){\n"
-"    randZ[i] = RanUnif(lRndSeed);\n"
-"  }\n"
+"  int id = get_global_id(0);\n"
+"  randZ[id] = RanUnif(&input[3]);\n"
 "}\n";
 
 cl_platform_id platform;
@@ -393,7 +392,7 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
     
     bufferOutput = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeOutput, NULL, &result);
     if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
-    bufferInput = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeInput, NULL, &result);
+    bufferInput = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeInput, NULL, &result);
     if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
     bufferpdZ = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizepdZ, NULL, &result);
     if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
@@ -449,6 +448,7 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
     input[0] = BLOCKSIZE;
     input[1] = iFactors;
     input[2] = iN;
+    input[3] = 100;
     clSetKernelArg(kernel_randGen, 0, sizeof(cl_mem), (void*) &bufferrandZ);
     clSetKernelArg(kernel_randGen, 1, sizeof(cl_mem), (void*) &bufferInput);
 
