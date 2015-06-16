@@ -122,7 +122,6 @@ const char* program_src =
 "\n"
 "__kernel void op_serialB(__global FTYPE *pdZ, __global FTYPE *randZ, __global FTYPE* output, __global int* input)\n"
 "{\n"
-"  barrier(CLK_GLOBAL_MEM_FENCE);\n"
 "  int BLOCKSIZE = input[0];\n"
 "  int iFactors = input[1];\n"
 "  int iN = input[2];\n"
@@ -131,7 +130,7 @@ const char* program_src =
 "\n"
 "  for(int i=id*iFactors;i<(id+1)*iFactors;i++){\n"
 "        pdZ[i]= CumNormalInv(randZ[i]);  \n"
-"        output[id] = CumNormalInv(randZ[i]);\n"
+"        output[id] = randZ[i];\n"
 "  }\n"
 "}\n";
 
