@@ -4,8 +4,8 @@ Project: Swaption benchmark acceleration
 The goal of this task is PARSEC benchmark Included in Swaption The performance of the implemented using OpenCL To accelerate. By implementing the four cases below, shall be submitted with the report.
 a) using OpenCL implementation using all of the CPU of one node
 b) using OpenCL implementation using all of the GPU of one node
-c) using MPI + OpenCL implementation using all of GPU of four nodes
-d) Use SnuCL implementation using all of the GPU of four nodes
+c) using MPI + OpenCL implementation using all of GPU of four nodes ie. --nodes 4, and use all 16 gpu
+d) Use SnuCL implementation using all of the GPU of four nodes ie. --nodes 5, and use all 16 gpu
 
 SnuCL version used is 1.3.2, the compiler uses gcc 4.4.6 (compiler of Chundoong login nodes), and other execution environment (OpenCL library versions, and so on) are based on the Chundoong. Performance of project deliverables evaluation is also carried out in Chundoong.
 
