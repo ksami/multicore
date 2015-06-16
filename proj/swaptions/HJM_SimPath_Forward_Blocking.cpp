@@ -56,7 +56,9 @@ struct ParallelB {
 
 #endif // TBB_VERSION
 
-
+int done=0;
+FTYPE *pdZ; //vector to store random normals
+FTYPE *randZ; //vector to store random normals
 
 #ifdef ENABLE_OPENCL
 #include <CL/cl.h>
@@ -133,7 +135,6 @@ const char* program_src =
 "  output[id] = 0;\n"
 "}\n";
 
-int done=0;
 cl_platform_id platform;
 cl_device_id device;
 cl_context context;
@@ -348,16 +349,17 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
 
     int iSuccess = 0;
     int i,j,l; //looping variables
-    FTYPE *pdZ; //vector to store random normals
-    FTYPE *randZ; //vector to store random normals
+
     FTYPE dTotalShock; //total shock by which the forward curve is hit at (t, T-t)
     FTYPE ddelt, sqrt_ddelt; //length of time steps 
 
     ddelt = (FTYPE)(dYears/iN);
     sqrt_ddelt = sqrt(ddelt);
 
+    if(done==0){
     pdZ = (FTYPE *)malloc(iFactors*BLOCKSIZE*iN*sizeof(FTYPE));
     randZ = (FTYPE *)malloc(iFactors*BLOCKSIZE*iN*sizeof(FTYPE));
+    }
     // pdZ   = dmatrix(0, iFactors-1, 0, iN*BLOCKSIZE -1); //assigning memory
     // randZ = dmatrix(0, iFactors-1, 0, iN*BLOCKSIZE -1); //assigning memory
 
@@ -456,16 +458,12 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
         result = clEnqueueReadBuffer(command_queue, bufferpdZ, CL_TRUE, 0, sizepdZ, pdZ, 0, NULL, NULL);
         if(result != CL_SUCCESS) printOpenCLError("clEnqueueReadBuffer", result);
 
-        
-        // Wait for all commands in queue to finish
-        result = clFinish(command_queue);
-        if(result != CL_SUCCESS) printOpenCLError("clFinish", result);
 
-        //debug check output
-        for(int i=0; i<GLOBAL_WORK_ITEMS; i++)
-        {
-            if(output[i]) printf("%d: %d\n", i, output[i]);
-        }
+        // //debug check output
+        // for(int i=0; i<GLOBAL_WORK_ITEMS; i++)
+        // {
+        //     if(output[i]) printf("%d: %d\n", i, output[i]);
+        // }
         
     #else
     /* 18% of the total executition time */
