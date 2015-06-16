@@ -484,11 +484,8 @@ printf("generation\n");
         
         for (l=0;l<=iN-(j+1);++l){ // l is the future steps
           dTotalShock = 0;
-          printf("shock\n");
           for (i=0;i<=iFactors-1;++i){// i steps through the stochastic factors
-            printf("accessing pdZ\n");
             dTotalShock += ppdFactors[i][l]* pdZ[(i*BLOCKSIZE*iN) + BLOCKSIZE*j + b];               
-            printf("accessed\n");
           }            
 
           ppdHJMPath[j][BLOCKSIZE*l+b] = ppdHJMPath[j-1][BLOCKSIZE*(l+1)+b]+ pdTotalDrift[l]*ddelt + sqrt_ddelt*dTotalShock;
