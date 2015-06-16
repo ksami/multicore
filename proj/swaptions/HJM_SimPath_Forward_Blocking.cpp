@@ -125,10 +125,10 @@ const char* program_src =
 "  int iFactors = input[1];\n"
 "  int iN = input[2];\n"
 "  int rowsize = BLOCKSIZE * iN;\n"
-"  int id = get_global_id(0); int l;\n"
+"  int id = get_global_id(0);\n"
 "\n"
-"  for(l=0;l<=iFactors-1;l++){\n"
-"        pdZ[(l*rowsize)+id]= CumNormalInv(randZ[(l*rowsize)+id]);  \n"
+"  for(int i=id;i<iFactors+id;i++){\n"
+"        pdZ[i]= CumNormalInv(randZ[i]);  \n"
 "  }\n"
 "  output[id] = 0;\n"
 "}\n";
