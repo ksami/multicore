@@ -56,13 +56,13 @@ struct ParallelB {
 
 #endif // TBB_VERSION
 
-int done=0;
+int done_serialB=0;
 
 
 #ifdef ENABLE_OPENCL
 #include <CL/cl.h>
 
-const char* kernel_serialB = "op_serialB";
+const char* name_serialB = "op_serialB";
 const char* program_src =
 "#define FTYPE double\n"
 "\n"
@@ -140,7 +140,7 @@ cl_device_id device;
 cl_context context;
 cl_command_queue command_queue;
 cl_program program;
-cl_kernel kernel;
+cl_kernel kernel_serialB;
 size_t sizeOutput;
 size_t sizeInput;
 size_t sizepdZ;
@@ -281,7 +281,7 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
     size_t local[1] = { 16 };
 
 
-    if(done==0){
+    if(done_serialB==0){
 
     // Obtain a list of available OpenCL platforms
     //cl_platform_id platform;
@@ -348,7 +348,7 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
         exit(EXIT_FAILURE);
     }
 
-    }  //done
+    }  //done_serialB
 
 #endif  //ENABLE_OPENCL
 
@@ -411,9 +411,9 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
 
 #else
     #ifdef ENABLE_OPENCL
-      if(done==0) {
+      if(done_serialB==0) {
         // Create a kernel object from the program
-        kernel = clCreateKernel(program, kernel_serialB, &result);
+        kernel_serialB = clCreateKernel(program, name_serialB, &result);
         if(result!=CL_SUCCESS) printOpenCLError("clCreateKernel", result);
 
         // Allocate buffer memory objects        
@@ -430,15 +430,15 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
         if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
         bufferrandZ = clCreateBuffer(context, CL_MEM_READ_ONLY, sizerandZ, NULL, &result);
         if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
-        done=1;
-      }  //done
+        done_serialB=1;
+      }  //done_serialB
 
 
-        // Set the arguments of the kernel
-        clSetKernelArg(kernel, 0, sizeof(cl_mem), (void*) &bufferpdZ);
-        clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*) &bufferrandZ);
-        clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*) &bufferOutput);
-        clSetKernelArg(kernel, 3, sizeof(cl_mem), (void*) &bufferInput);
+        // Set the arguments of the kernel_serialB
+        clSetKernelArg(kernel_serialB, 0, sizeof(cl_mem), (void*) &bufferpdZ);
+        clSetKernelArg(kernel_serialB, 1, sizeof(cl_mem), (void*) &bufferrandZ);
+        clSetKernelArg(kernel_serialB, 2, sizeof(cl_mem), (void*) &bufferOutput);
+        clSetKernelArg(kernel_serialB, 3, sizeof(cl_mem), (void*) &bufferInput);
 
         
         // Copy the input vectors to the corresponding buffers
@@ -450,8 +450,8 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
         result = clEnqueueWriteBuffer(command_queue, bufferrandZ, CL_FALSE, 0, sizerandZ, randZ, 0, NULL, NULL);
         if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
         
-        // Execute the kernel
-        result = clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL, global, local, 0, NULL, NULL);
+        // Execute the kernel_serialB
+        result = clEnqueueNDRangeKernel(command_queue, kernel_serialB, 1, NULL, global, local, 0, NULL, NULL);
         if(result!=CL_SUCCESS) printOpenCLError("clEnqueueNDRangeKernel", result);
         
         // Wait for all commands in queue to finish
