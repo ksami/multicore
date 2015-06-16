@@ -57,8 +57,8 @@ struct ParallelB {
 #endif // TBB_VERSION
 
 int done=0;
-FTYPE *pdZ; //vector to store random normals
-FTYPE *randZ; //vector to store random normals
+FTYPE *pdZ= (FTYPE *)malloc(iFactors*BLOCKSIZE*iN*sizeof(FTYPE));
+FTYPE *randZ = (FTYPE *)malloc(iFactors*BLOCKSIZE*iN*sizeof(FTYPE));
 
 
 #ifdef ENABLE_OPENCL
@@ -357,10 +357,7 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
     ddelt = (FTYPE)(dYears/iN);
     sqrt_ddelt = sqrt(ddelt);
 
-    if(done==0){
-    pdZ = (FTYPE *)malloc(iFactors*BLOCKSIZE*iN*sizeof(FTYPE));
-    randZ = (FTYPE *)malloc(iFactors*BLOCKSIZE*iN*sizeof(FTYPE));
-    }
+
     // pdZ   = dmatrix(0, iFactors-1, 0, iN*BLOCKSIZE -1); //assigning memory
     // randZ = dmatrix(0, iFactors-1, 0, iN*BLOCKSIZE -1); //assigning memory
 
