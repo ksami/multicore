@@ -468,14 +468,12 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
         }
         
     #else
-printf("serial\n");
     /* 18% of the total executition time */
     serialB(pdZ, randZ, BLOCKSIZE, iN, iFactors);
 
     #endif  //ENABLE_OPENCL
 
 #endif
-printf("generation\n");
     //TODO:
     // =====================================================
     // Generation of HJM Path1
