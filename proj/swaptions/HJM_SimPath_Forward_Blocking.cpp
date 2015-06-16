@@ -234,14 +234,14 @@ void printOpenCLError(char* functionName, cl_int error)
 
 
 
-void serialB(FTYPE **pdZ, FTYPE **randZ, int BLOCKSIZE, int iN, int iFactors)
+void serialB(FTYPE *pdZ, FTYPE *randZ, int BLOCKSIZE, int iN, int iFactors)
 {
 
   //TODO:  
   for(int l=0;l<=iFactors-1;++l){
     for(int b=0; b<BLOCKSIZE; b++){
       for (int j=1;j<=iN-1;++j){
-        pdZ[l][BLOCKSIZE*j + b]= CumNormalInv(randZ[l][BLOCKSIZE*j + b]);  /* 18% of the total executition time */
+        pdZ[(l*BLOCKSIZE*iN) + BLOCKSIZE*j + b]= CumNormalInv(randZ[(l*BLOCKSIZE*iN) + BLOCKSIZE*j + b]);  /* 18% of the total executition time */
       }
     }
   }
@@ -348,16 +348,18 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
 
     int iSuccess = 0;
     int i,j,l; //looping variables
-    FTYPE **pdZ; //vector to store random normals
-    FTYPE **randZ; //vector to store random normals
+    FTYPE *pdZ; //vector to store random normals
+    FTYPE *randZ; //vector to store random normals
     FTYPE dTotalShock; //total shock by which the forward curve is hit at (t, T-t)
     FTYPE ddelt, sqrt_ddelt; //length of time steps 
 
     ddelt = (FTYPE)(dYears/iN);
     sqrt_ddelt = sqrt(ddelt);
 
-    pdZ   = dmatrix(0, iFactors-1, 0, iN*BLOCKSIZE -1); //assigning memory
-    randZ = dmatrix(0, iFactors-1, 0, iN*BLOCKSIZE -1); //assigning memory
+    pdZ = (FTYPE *)malloc(iFactors*BLOCKSIZE*iN*sizeof(FTYPE));
+    randZ = (FTYPE *)malloc(iFactors*BLOCKSIZE*iN*sizeof(FTYPE));
+    // pdZ   = dmatrix(0, iFactors-1, 0, iN*BLOCKSIZE -1); //assigning memory
+    // randZ = dmatrix(0, iFactors-1, 0, iN*BLOCKSIZE -1); //assigning memory
 
     //TODO:
     // =====================================================
@@ -383,7 +385,7 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
         for (j=1;j<=iN-1;++j){
           for (l=0;l<=iFactors-1;++l){
             //compute random number in exact same sequence
-            randZ[l][BLOCKSIZE*j + b + s] = RanUnif(lRndSeed);  /* 10% of the total executition time */
+            randZ[(l*BLOCKSIZE*iN) + BLOCKSIZE*j + b + s] = RanUnif(lRndSeed);  /* 10% of the total executition time */
           }
         }
       }
@@ -451,10 +453,6 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
         // Copy the result from bufferOutput to output
         result = clEnqueueReadBuffer(command_queue, bufferOutput, CL_TRUE, 0, sizeOutput, output, 0, NULL, NULL);
         if(result != CL_SUCCESS) printOpenCLError("clEnqueueReadBuffer", result);
-        printf("trying to print pdz now\n");
-        for(int i=0; i<3; i++)
-          for(int j=0; j<175; j++)
-            printf("pdZ: %lf\n", pdZ[i][j]);
         result = clEnqueueReadBuffer(command_queue, bufferpdZ, CL_TRUE, 0, sizepdZ, pdZ, 0, NULL, NULL);
         if(result != CL_SUCCESS) printOpenCLError("clEnqueueReadBuffer", result);
 
@@ -489,7 +487,7 @@ printf("generation\n");
           printf("shock\n");
           for (i=0;i<=iFactors-1;++i){// i steps through the stochastic factors
             printf("accessing pdZ\n");
-            dTotalShock += ppdFactors[i][l]* pdZ[i][BLOCKSIZE*j + b];               
+            dTotalShock += ppdFactors[i][l]* pdZ[(i*BLOCKSIZE*iN) + BLOCKSIZE*j + b];               
             printf("accessed\n");
           }            
 
@@ -500,8 +498,10 @@ printf("generation\n");
     } // end Blocks
     // -----------------------------------------------------
 
-    free_dmatrix(pdZ, 0, iFactors -1, 0, iN*BLOCKSIZE -1);
-    free_dmatrix(randZ, 0, iFactors -1, 0, iN*BLOCKSIZE -1);
+    free(pdZ);
+    free(randZ);
+    // free_dmatrix(pdZ, 0, iFactors -1, 0, iN*BLOCKSIZE -1);
+    // free_dmatrix(randZ, 0, iFactors -1, 0, iN*BLOCKSIZE -1);
     iSuccess = 1;
     return iSuccess;
 }
