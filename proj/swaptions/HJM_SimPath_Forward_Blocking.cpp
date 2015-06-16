@@ -142,6 +142,10 @@ cl_context context;
 cl_command_queue command_queue;
 cl_program program;
 cl_kernel kernel;
+size_t sizeOutput;
+size_t sizeInput;
+size_t sizepdZ;
+size_t sizerandZ;
 cl_mem bufferOutput;
 cl_mem bufferInput;
 cl_mem bufferpdZ;
@@ -405,10 +409,10 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
         if(result!=CL_SUCCESS) printOpenCLError("clCreateKernel", result);
 
         // Allocate buffer memory objects        
-        size_t sizeOutput = GLOBAL_WORK_ITEMS * sizeof(int);
-        size_t sizeInput = 4 * sizeof(int);
-        size_t sizepdZ = iFactors * iN * BLOCKSIZE * sizeof(FTYPE);
-        size_t sizerandZ = iFactors * iN * BLOCKSIZE * sizeof(FTYPE);
+        sizeOutput = GLOBAL_WORK_ITEMS * sizeof(int);
+        sizeInput = 4 * sizeof(int);
+        sizepdZ = iFactors * iN * BLOCKSIZE * sizeof(FTYPE);
+        sizerandZ = iFactors * iN * BLOCKSIZE * sizeof(FTYPE);
         
         bufferOutput = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeOutput, NULL, &result);
         if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
