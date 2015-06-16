@@ -153,13 +153,14 @@ const char* program_src =
 "  \n"
 "} // end of RanUnif\n"
 "\n"
-"__kernel void op_randGen(__global FTYPE* randZ, __global int* input)\n"
+"__kernel void op_randGen(__global FTYPE* randZ, __global FTYPE* output, __global int* input)\n"
 "{\n"
 "  int BLOCKSIZE = input[0];\n"
 "  int iFactors = input[1];\n"
 "  int iN = input[2];\n"
 "  int id = get_global_id(0);\n"
 "  randZ[id] = RanUnif(input[3]+id);\n"
+"  output[id] = RanUnif(input[3]+id);\n"
 "}\n";
 
 cl_platform_id platform;
@@ -448,7 +449,8 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
     input[2] = iN;
     input[3] = 100;
     clSetKernelArg(kernel_randGen, 0, sizeof(cl_mem), (void*) &bufferrandZ);
-    clSetKernelArg(kernel_randGen, 1, sizeof(cl_mem), (void*) &bufferInput);
+    clSetKernelArg(kernel_randGen, 1, sizeof(cl_mem), (void*) &bufferOutput);
+    clSetKernelArg(kernel_randGen, 2, sizeof(cl_mem), (void*) &bufferInput);
 
     // Set input
     result = clEnqueueWriteBuffer(command_queue, bufferInput, CL_FALSE, 0, sizeInput, input, 0, NULL, NULL);
@@ -463,9 +465,16 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
     if(result != CL_SUCCESS) printOpenCLError("clFinish", result);
 
     // // Copy output
+    result = clEnqueueReadBuffer(command_queue, bufferOutput, CL_TRUE, 0, sizeOutput, output, 0, NULL, NULL);
+    if(result != CL_SUCCESS) printOpenCLError("clEnqueueReadBuffer", result);
     // result = clEnqueueReadBuffer(command_queue, bufferrandZ, CL_TRUE, 0, sizerandZ, randZ, 0, NULL, NULL);
     // if(result != CL_SUCCESS) printOpenCLError("clEnqueueReadBuffer", result);
-
+    
+    // debug check output
+    for(int i=0; i<GLOBAL_WORK_ITEMS; i++)
+    {
+       if(output[i]) printf("%d: %lf\n", i, output[i]);
+    }
 #else
             for(int i=0; i<BLOCKSIZE*iN*iFactors; i++){
               randZ[i] = RanUnif(lRndSeed);
