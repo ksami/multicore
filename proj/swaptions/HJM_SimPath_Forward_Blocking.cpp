@@ -57,8 +57,6 @@ struct ParallelB {
 #endif // TBB_VERSION
 
 int done=0;
-FTYPE *pdZ= (FTYPE *)malloc(iFactors*BLOCKSIZE*iN*sizeof(FTYPE));
-FTYPE *randZ = (FTYPE *)malloc(iFactors*BLOCKSIZE*iN*sizeof(FTYPE));
 
 
 #ifdef ENABLE_OPENCL
@@ -257,7 +255,7 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
                  FTYPE *pdTotalDrift,   //Vector containing total drift corrections for different maturities
                  FTYPE **ppdFactors,    //Factor volatilities
                  long *lRndSeed,            //Random number seed
-                 int BLOCKSIZE)
+                 int BLOCKSIZE, FTYPE* pdZ, FTYPE* randZ)
 {   
 //This function computes and stores an HJM Path for given inputs
 
@@ -489,8 +487,6 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
     } // end Blocks
     // -----------------------------------------------------
 
-    // free(pdZ);
-    // free(randZ);
     // free_dmatrix(pdZ, 0, iFactors -1, 0, iN*BLOCKSIZE -1);
     // free_dmatrix(randZ, 0, iFactors -1, 0, iN*BLOCKSIZE -1);
     iSuccess = 1;

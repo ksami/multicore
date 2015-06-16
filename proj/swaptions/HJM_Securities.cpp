@@ -76,6 +76,8 @@ struct Worker {
 void * worker(void *arg){
     int tid = *((int *)arg);
     FTYPE pdSwaptionPrice[2];
+    FTYPE *pdZ = (FTYPE *)malloc(3*16*11*sizeof(FTYPE));
+    FTYPE *randZ = (FTYPE *)malloc(3*16*11*sizeof(FTYPE));
 
     int chunksize = nSwaptions/nThreads;
     int beg = tid*chunksize;
@@ -89,11 +91,13 @@ void * worker(void *arg){
             swaptions[i].dTenor, swaptions[i].dPaymentInterval,
             swaptions[i].iN, swaptions[i].iFactors, swaptions[i].dYears, 
             swaptions[i].pdYield, swaptions[i].ppdFactors,
-            100, NUM_TRIALS, BLOCK_SIZE, 0);
+            100, NUM_TRIALS, BLOCK_SIZE, 0, pdZ, randZ);
         assert(iSuccess == 1);
         swaptions[i].dSimSwaptionMeanPrice = pdSwaptionPrice[0];
         swaptions[i].dSimSwaptionStdError = pdSwaptionPrice[1];
     }
+    free(pdZ);
+    free(randZ);
 
     return NULL;    
 }

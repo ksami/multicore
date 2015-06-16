@@ -16,7 +16,7 @@ int Discount_Factors_opt(FTYPE *pdDiscountFactors, int iN, FTYPE dYears, FTYPE *
 int HJM_SimPath_Forward_Blocking_SSE(FTYPE **ppdHJMPath, int iN, int iFactors, FTYPE dYears, FTYPE *pdForward, FTYPE *pdTotalDrift,
 			    FTYPE **ppdFactors, long *lRndSeed, int BLOCKSIZE);
 int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath, int iN, int iFactors, FTYPE dYears, FTYPE *pdForward, FTYPE *pdTotalDrift,
-			    FTYPE **ppdFactors, long *lRndSeed, int BLOCKSIZE);
+			    FTYPE **ppdFactors, long *lRndSeed, int BLOCKSIZE, FTYPE* pdZ, FTYPE* randZ);
 
 
 int Discount_Factors_Blocking(FTYPE *pdDiscountFactors, int iN, FTYPE dYears, FTYPE *pdRatePath, int BLOCKSIZE);
@@ -63,7 +63,7 @@ int HJM_Swaption_Blocking(FTYPE *pdSwaptionPrice, //Output vector that will stor
 			      FTYPE **ppdFactors,
 			      //Simulation Parameters
 			      long iRndSeed, 
-			      long lTrials, int blocksize, int tid);
+			      long lTrials, int blocksize, int tid, FTYPE* pdZ, FTYPE* randZ);
 /*
 extern "C" FTYPE *dvector( long nl, long nh );
 extern "C" FTYPE **dmatrix( long nrl, long nrh, long ncl, long nch );
