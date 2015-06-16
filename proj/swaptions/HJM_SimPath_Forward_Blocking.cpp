@@ -130,7 +130,7 @@ const char* program_src =
 "  for(l=0;l<=iFactors-1;l++){\n"
 "        pdZ[(l*rowsize)+id]= CumNormalInv(randZ[(l*rowsize)+id]);  \n"
 "  }\n"
-"  output[id] = l;\n"
+"  output[id] = 0;\n"
 "}\n";
 
 int done=0;
