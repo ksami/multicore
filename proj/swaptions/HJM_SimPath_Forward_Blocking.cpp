@@ -136,7 +136,7 @@ const char* program_src =
 "  }\n"
 "}\n"
 "\n"
-"FTYPE RanUnif( long *s )\n"
+"FTYPE RanUnif( int *s )\n"
 "{\n"
 "  // uniform random number generator\n"
 "  long   ix, k1;\n"
