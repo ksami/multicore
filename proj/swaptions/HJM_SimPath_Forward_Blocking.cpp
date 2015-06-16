@@ -419,6 +419,8 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
         bufferrandZ = clCreateBuffer(context, CL_MEM_READ_ONLY, sizerandZ, NULL, &result);
         if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
 
+        done=1;
+      }  //done
 
         // Set the arguments of the kernel
         clSetKernelArg(kernel, 0, sizeof(cl_mem), (void*) &bufferpdZ);
@@ -454,9 +456,6 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
         {
             if(output[i]) printf("%d: %d\n", i, output[i]);
         }
-
-        done=1;
-      }  //done
     #else
 
     /* 18% of the total executition time */
