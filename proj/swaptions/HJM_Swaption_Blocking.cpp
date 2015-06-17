@@ -73,9 +73,14 @@ int HJM_Swaption_Blocking(FTYPE *pdSwaptionPrice, //Output vector that will stor
   // ppdHJMPath = dmatrix(0,iN-1,0,iN-1);
   // ppdHJMPath = dmatrix(0,iN-1,0,iN*BLOCKSIZE-1);    // **** per Trial data **** //
   ppdHJMPath = (FTYPE*) malloc(iN*iN*BLOCKSIZE*sizeof(FTYPE)); 
-  pdForward = dvector(0, iN-1);
-  ppdDrifts = dmatrix(0, iFactors-1, 0, iN-2);
-  pdTotalDrift = dvector(0, iN-2);
+  //pdForward = dvector(0, iN-1);
+  pdForward = (FTYPE*) malloc(iN*sizeof(FTYPE));
+  //ppdDrifts = dmatrix(0, iFactors-1, 0, iN-2);
+  ppdDrifts = (FTYPE**) malloc(iFactors*sizeof(FTYPE*));
+  for(int i=0; i<iFactors; i++)
+    ppdDrifts[i] = (FTYPE*) malloc((iN-1)*sizeof(FTYPE));
+  //pdTotalDrift = dvector(0, iN-2);
+  pdTotalDrift = (FTYPE*) malloc((iN-1)*sizeof(FTYPE));
   
   //==================================
   // **** per Trial data **** //
@@ -105,17 +110,23 @@ int HJM_Swaption_Blocking(FTYPE *pdSwaptionPrice, //Output vector that will stor
   FTYPE dSimSwaptionStdError;
   
   // *******************************
-  pdPayoffDiscountFactors = dvector(0, iN*BLOCKSIZE-1);
-  pdDiscountingRatePath = dvector(0, iN*BLOCKSIZE-1);
+  //pdPayoffDiscountFactors = dvector(0, iN*BLOCKSIZE-1);
+  //pdDiscountingRatePath = dvector(0, iN*BLOCKSIZE-1);
+  pdPayoffDiscountFactors = (FTYPE*) malloc((iN*BLOCKSIZE-1)*sizeof(FTYPE));
+  pdDiscountingRatePath = (FTYPE*) malloc((iN*BLOCKSIZE-1)*sizeof(FTYPE));
   // *******************************
   
   iSwapVectorLength = (int) (iN - dMaturity/ddelt + 0.5); //This is the length of the HJM rate path at the time index
   //corresponding to swaption maturity.
   // *******************************
-  pdSwapRatePath = dvector(0, iSwapVectorLength*BLOCKSIZE - 1);
-  pdSwapDiscountFactors  = dvector(0, iSwapVectorLength*BLOCKSIZE - 1);
+  //pdSwapRatePath = dvector(0, iSwapVectorLength*BLOCKSIZE - 1);
+  //pdSwapDiscountFactors  = dvector(0, iSwapVectorLength*BLOCKSIZE - 1);
+  //// *******************************
+  //pdSwapPayoffs = dvector(0, iSwapVectorLength - 1);
+  pdSwapRatePath = (FTYPE*) malloc((iSwapVectorLength*BLOCKSIZE - 1)*sizeof(FTYPE));
+  pdSwapDiscountFactors  = (FTYPE*) malloc((iSwapVectorLength*BLOCKSIZE - 1)*sizeof(FTYPE));
   // *******************************
-  pdSwapPayoffs = dvector(0, iSwapVectorLength - 1);
+  pdSwapPayoffs = (FTYPE*) malloc((iSwapVectorLength - 1)*sizeof(FTYPE));
 
 
   iSwapStartTimeIndex = (int) (dMaturity/ddelt + 0.5);  //Swap starts at swaption maturity
