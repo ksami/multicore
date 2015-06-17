@@ -363,7 +363,7 @@ int main(int argc, char *argv[])
     free(pdZ);
     free(randZ);
 
-    MPI_Gather(swaptions[beg], end-beg, mpi_parm_type, swaptions[beg], end-beg, mpi_parm_type, 0, MPI_COMM_WORLD);
+    MPI_Gather((void*)&swaptions[beg], end-beg, mpi_parm_type, (void*)&swaptions[beg], end-beg, mpi_parm_type, 0, MPI_COMM_WORLD);
 
 #else
     int threadID=0;
