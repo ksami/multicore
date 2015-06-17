@@ -443,7 +443,7 @@ int HJM_SimPath_Forward_Blocking(FTYPE *ppdHJMPath,    //Matrix that stores gene
     // pdZ   = dmatrix(0, iFactors-1, 0, iN*BLOCKSIZE -1); //assigning memory
     // randZ = dmatrix(0, iFactors-1, 0, iN*BLOCKSIZE -1); //assigning memory
 
-    //TODO:
+
     // =====================================================
     // t=0 forward curve stored iN first row of ppdHJMPath
     // At time step 0: insert expected drift 
