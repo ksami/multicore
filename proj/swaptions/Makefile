@@ -38,5 +38,5 @@ $(EXEC): $(OBJS)
 	$(CXX) $(CXXFLAGS) $(DEF) -c $*.c -o $*.o
 
 clean:
-	rm -f $(OBJS) $(EXEC)
+	rm -f $(OBJS) $(EXEC) task*
 
