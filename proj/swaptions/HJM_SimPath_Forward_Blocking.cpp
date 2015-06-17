@@ -159,8 +159,10 @@ const char* program_src =
 "  int iFactors = input[1];\n"
 "  int iN = input[2];\n"
 "  int id = get_global_id(0);\n"
-"  randZ[id] = RanUnif(input[3]+id);\n"
-"  output[id] = RanUnif(input[3]+id);\n"
+"  for(int i=id*iFactors;i<(id+1)*iFactors;i++){\n"
+"        randZ[i]= RanUnif(input[3]+i);  \n"
+"        output[id] = randZ[i];\n"
+"  }\n"
 "}\n";
 
 cl_platform_id platform;
@@ -178,7 +180,6 @@ cl_mem bufferOutput;
 cl_mem bufferInput;
 cl_mem bufferpdZ;
 cl_mem bufferrandZ;
-cl_mem bufferrandZ1;
 
 // OpenCL Errors //
 void printOpenCLError(char* functionName, cl_int error)
@@ -396,9 +397,7 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
     if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
     bufferpdZ = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizepdZ, NULL, &result);
     if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
-    bufferrandZ = clCreateBuffer(context, CL_MEM_READ_ONLY, sizerandZ, NULL, &result);
-    if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
-    bufferrandZ1 = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizerandZ, NULL, &result);
+    bufferrandZ = clCreateBuffer(context, CL_MEM_READ_WRITE, sizerandZ, NULL, &result);
     if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
     done_serialB=1;
 
@@ -451,7 +450,7 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
     input[1] = iFactors;
     input[2] = iN;
     input[3] = 100;
-    clSetKernelArg(kernel_randGen, 0, sizeof(cl_mem), (void*) &bufferrandZ1);
+    clSetKernelArg(kernel_randGen, 0, sizeof(cl_mem), (void*) &bufferrandZ);
     clSetKernelArg(kernel_randGen, 1, sizeof(cl_mem), (void*) &bufferOutput);
     clSetKernelArg(kernel_randGen, 2, sizeof(cl_mem), (void*) &bufferInput);
 
@@ -470,7 +469,7 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
     // // Copy output
     result = clEnqueueReadBuffer(command_queue, bufferOutput, CL_TRUE, 0, sizeOutput, output, 0, NULL, NULL);
     if(result != CL_SUCCESS) printOpenCLError("clEnqueueReadBuffer", result);
-    result = clEnqueueReadBuffer(command_queue, bufferrandZ1, CL_TRUE, 0, sizerandZ, randZ, 0, NULL, NULL);
+    result = clEnqueueReadBuffer(command_queue, bufferrandZ, CL_TRUE, 0, sizerandZ, randZ, 0, NULL, NULL);
     if(result != CL_SUCCESS) printOpenCLError("clEnqueueReadBuffer", result);
     
     // debug check output
