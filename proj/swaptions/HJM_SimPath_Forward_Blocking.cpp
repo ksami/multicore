@@ -528,10 +528,10 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
 
 
         //debug check output
-        for(int i=0; i<GLOBAL_WORK_ITEMS; i++)
-        {
-           if(output[i]) printf("%d: %lf\n", i, output[i]);
-        }
+        // for(int i=0; i<GLOBAL_WORK_ITEMS; i++)
+        // {
+        //    if(output[i]) printf("%d: %lf\n", i, output[i]);
+        // }
         
     #else
     /* 18% of the total executition time */
