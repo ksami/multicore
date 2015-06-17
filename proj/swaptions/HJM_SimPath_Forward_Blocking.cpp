@@ -178,7 +178,7 @@ const char* program_src =
 "    { ppdHJMPath[(i*BLOCKSIZE*iN) + id]=0; } //initializing HJMPath to zero\n"
 "}\n"
 "\n"
-"__kernel void op_pathGen(__global FTYPE* ppdFactors, __global FTYPE* pdZ, __global FTYPE* pdTotalDrift, __global FTYPE* output, __global int* input)\n"
+"__kernel void op_pathGen(__global FTYPE* ppdHJMPath, __global FTYPE* ppdFactors, __global FTYPE* pdZ, __global FTYPE* pdTotalDrift, __global FTYPE* output, __global int* input)\n"
 "{\n"
 "  int BLOCKSIZE = input[0];\n"
 "  int iFactors = input[1];\n"
@@ -190,10 +190,10 @@ const char* program_src =
 "\n"
 "  if(id<BLOCKSIZE){\n"
 "    int b=id;\n"
-"    for (j=1;j<=iN-1;++j) {// j is the timestep\n"
-"      for (l=0;l<=iN-(j+1);++l){ // l is the future steps\n"
+"    for (int j=1;j<=iN-1;++j) {// j is the timestep\n"
+"      for (int l=0;l<=iN-(j+1);++l){ // l is the future steps\n"
 "        dTotalShock = 0;\n"
-"        for (i=0;i<=iFactors-1;++i){// i steps through the stochastic factors\n"
+"        for (int i=0;i<=iFactors-1;++i){// i steps through the stochastic factors\n"
 "          dTotalShock += ppdFactors[(i*(iN-1))+l]* pdZ[(i*BLOCKSIZE*iN) + BLOCKSIZE*j + b];\n"
 "        }            \n"
 "  \n"
@@ -646,11 +646,12 @@ int HJM_SimPath_Forward_Blocking(FTYPE *ppdHJMPath,    //Matrix that stores gene
     // =====================================================
     // Generation of HJM Path1
 #ifdef ENABLE_OPENCL
-    clSetKernelArg(kernel_pathGen, 0, sizeof(cl_mem), (void*) &bufferppdFactors);
-    clSetKernelArg(kernel_pathGen, 1, sizeof(cl_mem), (void*) &bufferpdZ);
-    clSetKernelArg(kernel_pathGen, 2, sizeof(cl_mem), (void*) &bufferpdTotalDrift);
-    clSetKernelArg(kernel_pathGen, 3, sizeof(cl_mem), (void*) &bufferOutput);
-    clSetKernelArg(kernel_pathGen, 4, sizeof(cl_mem), (void*) &bufferInput);
+    clSetKernelArg(kernel_pathGen, 0, sizeof(cl_mem), (void*) &bufferppdHJMPath);
+    clSetKernelArg(kernel_pathGen, 1, sizeof(cl_mem), (void*) &bufferppdFactors);
+    clSetKernelArg(kernel_pathGen, 2, sizeof(cl_mem), (void*) &bufferpdZ);
+    clSetKernelArg(kernel_pathGen, 3, sizeof(cl_mem), (void*) &bufferpdTotalDrift);
+    clSetKernelArg(kernel_pathGen, 4, sizeof(cl_mem), (void*) &bufferOutput);
+    clSetKernelArg(kernel_pathGen, 5, sizeof(cl_mem), (void*) &bufferInput);
 
     // Set input
     // result = clEnqueueWriteBuffer(command_queue, bufferInput, CL_FALSE, 0, sizeInput, input, 0, NULL, NULL);
