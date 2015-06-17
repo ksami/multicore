@@ -63,7 +63,7 @@ int HJM_Swaption_Blocking(FTYPE *pdSwaptionPrice, //Output vector that will stor
   //HJM Framework vectors and matrices
   int iSwapVectorLength;  // Length of the HJM rate path at the time index corresponding to swaption maturity.
 
-  FTYPE **ppdHJMPath;    // **** per Trial data **** //
+  FTYPE *ppdHJMPath;    // **** per Trial data **** //
 
   FTYPE *pdForward;
   FTYPE **ppdDrifts; 
@@ -71,7 +71,8 @@ int HJM_Swaption_Blocking(FTYPE *pdSwaptionPrice, //Output vector that will stor
   
   // *******************************
   // ppdHJMPath = dmatrix(0,iN-1,0,iN-1);
-  ppdHJMPath = dmatrix(0,iN-1,0,iN*BLOCKSIZE-1);    // **** per Trial data **** //
+  // ppdHJMPath = dmatrix(0,iN-1,0,iN*BLOCKSIZE-1);    // **** per Trial data **** //
+  ppdHJMPath = malloc(iN*iN*BLOCKSIZE*sizeof(FTYPE)); 
   pdForward = dvector(0, iN-1);
   ppdDrifts = dmatrix(0, iFactors-1, 0, iN-2);
   pdTotalDrift = dvector(0, iN-2);
@@ -215,6 +216,7 @@ int HJM_Swaption_Blocking(FTYPE *pdSwaptionPrice, //Output vector that will stor
   pdSwaptionPrice[0] = dSimSwaptionMeanPrice;
   pdSwaptionPrice[1] = dSimSwaptionStdError;
   
+  free(ppdHJMPath);
   iSuccess = 1;
   return iSuccess;
 }
