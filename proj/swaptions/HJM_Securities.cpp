@@ -129,9 +129,9 @@ int main(int argc, char *argv[])
 
     //create type for struct parm
     const int nitems=13;
-    int blocklengths[13] = {1,1,1
-                            1,1,1
-                            1,1,1
+    int blocklengths[13] = {1,1,1,
+                            1,1,1,
+                            1,1,1,
                             1,iN,iFactors*(iN-1)};
     MPI_Datatype types[13] = {MPI_INT, MPI_DOUBLE, MPI_DOUBLE,
                              MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE, 
@@ -140,19 +140,19 @@ int main(int argc, char *argv[])
     MPI_Datatype mpi_parm_type;
     MPI_Aint     offsets[13];
 
-    offsets[0]  = offsetof(parm, Id);
-    offsets[1]  = offsetof(parm, dSimSwaptionMeanPrice);
-    offsets[2]  = offsetof(parm, dSimSwaptionStdError);
-    offsets[3]  = offsetof(parm, dStrike);
-    offsets[4]  = offsetof(parm, dCompounding);
-    offsets[5]  = offsetof(parm, dMaturity);
-    offsets[6]  = offsetof(parm, dTenor);
-    offsets[7]  = offsetof(parm, dPaymentInterval);
-    offsets[8]  = offsetof(parm, iN);
-    offsets[9]  = offsetof(parm, dYears);
-    offsets[10] = offsetof(parm, iFactors);
-    offsets[11] = offsetof(parm, pdYield);
-    offsets[12] = offsetof(parm, ppdFactors);
+    offsets[0]  = (MPI_Aint) offsetof(parm, Id);
+    offsets[1]  = (MPI_Aint) offsetof(parm, dSimSwaptionMeanPrice);
+    offsets[2]  = (MPI_Aint) offsetof(parm, dSimSwaptionStdError);
+    offsets[3]  = (MPI_Aint) offsetof(parm, dStrike);
+    offsets[4]  = (MPI_Aint) offsetof(parm, dCompounding);
+    offsets[5]  = (MPI_Aint) offsetof(parm, dMaturity);
+    offsets[6]  = (MPI_Aint) offsetof(parm, dTenor);
+    offsets[7]  = (MPI_Aint) offsetof(parm, dPaymentInterval);
+    offsets[8]  = (MPI_Aint) offsetof(parm, iN);
+    offsets[9]  = (MPI_Aint) offsetof(parm, dYears);
+    offsets[10] = (MPI_Aint) offsetof(parm, iFactors);
+    offsets[11] = (MPI_Aint) offsetof(parm, pdYield);
+    offsets[12] = (MPI_Aint) offsetof(parm, ppdFactors);
 
     MPI_Type_create_struct(nitems, blocklengths, offsets, types, &mpi_parm_type);
     MPI_Type_commit(&mpi_parm_type);
