@@ -196,6 +196,9 @@ int main(int argc, char *argv[])
     }
 #endif //ENABLE_THREADS
 
+#ifdef ENABLE_MPI
+    }  //myid==0
+#endif
 
     // initialize input dataset
     factors = dmatrix(0, iFactors-1, 0, iN-2);
@@ -233,10 +236,10 @@ int main(int argc, char *argv[])
     factors[2][8]= -.001000;
     factors[2][9]= -.001250;
 
-#ifdef ENABLE_MPI
-    }  //myid==0
-    MPI_Bcast(factors, iFactors*(iN-1), MPI_DOUBLE, 0, MPI_COMM_WORLD);
-#endif
+// #ifdef ENABLE_MPI
+//     }  //myid==0
+//     MPI_Bcast(factors, iFactors*(iN-1), MPI_DOUBLE, 0, MPI_COMM_WORLD);
+// #endif
 
     // setting up multiple swaptions
     swaptions = 
