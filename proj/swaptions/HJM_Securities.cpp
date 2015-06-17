@@ -282,14 +282,15 @@ int main(int argc, char *argv[])
     //now only prints myid==0 swaptions
     //need to create custom mpi struct type
     //use bcast scatter gather
-    if(myid==0)
-    {
 
     int chunksize = nSwaptions/numprocs;
     int beg = myid*chunksize;
     int end = (myid+1)*chunksize;
     if(myid == numprocs -1 )
         end = nSwaptions;
+    
+    if(myid==0)
+    {
 //#else
     // int beg = 0;
     // int end = nSwaptions;
