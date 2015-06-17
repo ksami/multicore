@@ -642,7 +642,7 @@ int HJM_SimPath_Forward_Blocking(FTYPE *ppdHJMPath,    //Matrix that stores gene
     #endif  //ENABLE_OPENCL
 
 #endif
-    //TODO:
+
     // =====================================================
     // Generation of HJM Path1
 #ifdef ENABLE_OPENCL
