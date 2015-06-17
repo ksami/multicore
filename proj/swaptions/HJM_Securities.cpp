@@ -14,6 +14,7 @@
 #include "HJM_type.h"
 
 #ifdef ENABLE_MPI
+#include <stddef.h>
 #include "mpi.h"
 #endif  //ENABLE_MPI
 
@@ -126,6 +127,36 @@ int main(int argc, char *argv[])
     MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
     MPI_Comm_rank(MPI_COMM_WORLD,&myid);
 
+    //create type for struct parm
+    const int nitems=13;
+    int blocklengths[13] = {1,1,1
+                            1,1,1
+                            1,1,1
+                            1,iN,iFactors*(iN-1)};
+    MPI_Datatype types[13] = {MPI_INT, MPI_DOUBLE, MPI_DOUBLE,
+                             MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE, 
+                             MPI_DOUBLE, MPI_DOUBLE, MPI_INT,
+                             MPI_DOUBLE, MPI_INT, MPI_DOUBLE, MPI_DOUBLE};
+    MPI_Datatype mpi_parm_type;
+    MPI_Aint     offsets[13];
+
+    offsets[0]  = offsetof(parm, Id);
+    offsets[1]  = offsetof(parm, dSimSwaptionMeanPrice);
+    offsets[2]  = offsetof(parm, dSimSwaptionStdError);
+    offsets[3]  = offsetof(parm, dStrike);
+    offsets[4]  = offsetof(parm, dCompounding);
+    offsets[5]  = offsetof(parm, dMaturity);
+    offsets[6]  = offsetof(parm, dTenor);
+    offsets[7]  = offsetof(parm, dPaymentInterval);
+    offsets[8]  = offsetof(parm, iN);
+    offsets[9]  = offsetof(parm, dYears);
+    offsets[10] = offsetof(parm, iFactors);
+    offsets[11] = offsetof(parm, pdYield);
+    offsets[12] = offsetof(parm, ppdFactors);
+
+    MPI_Type_create_struct(nitems, blocklengths, offsets, types, &mpi_parm_type);
+    MPI_Type_commit(&mpi_parm_type);
+
     if(myid==0)
     {
 #endif  //ENABLE_MPI
@@ -196,10 +227,6 @@ int main(int argc, char *argv[])
     }
 #endif //ENABLE_THREADS
 
-#ifdef ENABLE_MPI
-    }  //myid==0
-#endif
-
     // initialize input dataset
     factors = dmatrix(0, iFactors-1, 0, iN-2);
     //the three rows store vol data for the three factors
@@ -236,10 +263,10 @@ int main(int argc, char *argv[])
     factors[2][8]= -.001000;
     factors[2][9]= -.001250;
 
-// #ifdef ENABLE_MPI
-//     }  //myid==0
-//     MPI_Bcast(factors, iFactors*(iN-1), MPI_DOUBLE, 0, MPI_COMM_WORLD);
-// #endif
+#ifdef ENABLE_MPI
+    }  //myid==0
+    MPI_Bcast(factors, iFactors*(iN-1), MPI_DOUBLE, 0, MPI_COMM_WORLD);
+#endif
 
     // setting up multiple swaptions
     swaptions = 
@@ -252,6 +279,9 @@ int main(int argc, char *argv[])
     int k;
 #ifdef ENABLE_MPI
     //TODO: stopped here, how to bcast custom struct array swaptions?
+    //now only prints myid==0 swaptions
+    //need to create custom mpi struct type
+    //use bcast scatter gather
     int chunksize = nSwaptions/numprocs;
     int beg = myid*chunksize;
     int end = (myid+1)*chunksize;
@@ -333,6 +363,8 @@ int main(int argc, char *argv[])
     free(pdZ);
     free(randZ);
 
+    MPI_Gather(swaptions[beg], end-beg, mpi_parm_type, swaptions[beg], end-beg, mpi_parm_type, 0, MPI_COMM_WORLD);
+
 #else
     int threadID=0;
     worker(&threadID);
@@ -344,13 +376,22 @@ int main(int argc, char *argv[])
     __parsec_roi_end();
 #endif
 
-    for (i = beg; i < end; i++) {
+#ifdef ENABLE_MPI
+    if(myid==0)
+    {
+#endif
+
+    for (i = 0; i < nSwaptions; i++) {
         fprintf(stderr,"Swaption%d: [SwaptionPrice: %.10lf StdError: %.10lf] \n", 
             i, swaptions[i].dSimSwaptionMeanPrice, swaptions[i].dSimSwaptionStdError);
 
     }
 
-    for (i = beg; i < end; i++) {
+#ifdef ENABLE_MPI
+    }  //myid==0
+#endif
+
+    for (i = 0; i < nSwaptions; i++) {
         free_dvector(swaptions[i].pdYield, 0, swaptions[i].iN-1);
         free_dmatrix(swaptions[i].ppdFactors, 0, swaptions[i].iFactors-1, 0, swaptions[i].iN-2);
     }
@@ -369,6 +410,7 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef ENABLE_MPI
+    MPI_Type_free(&mpi_parm_type);
     MPI_Finalize();
 #endif
 
