@@ -248,10 +248,18 @@ int main(int argc, char *argv[])
 
     int k;
 #ifdef ENABLE_MPI
-    i = myid;
+    //TODO: stopped here, how to bcast custom struct array swaptions?
+    int chunksize = nSwaptions/numprocs;
+    int beg = myid*chunksize;
+    int end = (myid+1)*chunksize;
+    if(myid == numprocs -1 )
+        end = nSwaptions;
 #else
-    for (i = 0; i < nSwaptions; i++)
+    int beg = 0;
+    int end = nSwaptions;
 #endif
+
+    for (i = beg; i < end; i++)
     {
         swaptions[i].Id = i;
         swaptions[i].iN = iN;
@@ -307,12 +315,6 @@ int main(int argc, char *argv[])
     FTYPE pdSwaptionPrice[2];
     FTYPE *pdZ = (FTYPE *)malloc(iFactors*BLOCK_SIZE*iN*sizeof(FTYPE));
     FTYPE *randZ = (FTYPE *)malloc(iFactors*BLOCK_SIZE*iN*sizeof(FTYPE));
-
-    int chunksize = nSwaptions/numprocs;
-    int beg = myid*chunksize;
-    int end = (myid+1)*chunksize;
-    if(myid == numprocs -1 )
-        end = nSwaptions;
 
     for(int i=beg; i < end; i++) {
         int iSuccess = HJM_Swaption_Blocking(pdSwaptionPrice,  swaptions[i].dStrike, 
