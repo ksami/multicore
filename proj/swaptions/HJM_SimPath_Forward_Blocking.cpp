@@ -123,7 +123,6 @@ const char* program_src =
 "\n"
 "__kernel void op_serialB(__global FTYPE *pdZ, __global FTYPE *randZ, __global FTYPE* output, __global int* input)\n"
 "{\n"
-"  barrier(CLK_GLOBAL_MEM_FENCE);\n"
 "  int BLOCKSIZE = input[0];\n"
 "  int iFactors = input[1];\n"
 "  int iN = input[2];\n"
@@ -467,10 +466,10 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
     if(result != CL_SUCCESS) printOpenCLError("clFinish", result);
 
     // // Copy output
-    result = clEnqueueReadBuffer(command_queue, bufferOutput, CL_TRUE, 0, sizeOutput, output, 0, NULL, NULL);
-    if(result != CL_SUCCESS) printOpenCLError("clEnqueueReadBuffer", result);
-    result = clEnqueueReadBuffer(command_queue, bufferrandZ, CL_TRUE, 0, sizerandZ, randZ, 0, NULL, NULL);
-    if(result != CL_SUCCESS) printOpenCLError("clEnqueueReadBuffer", result);
+    // result = clEnqueueReadBuffer(command_queue, bufferOutput, CL_TRUE, 0, sizeOutput, output, 0, NULL, NULL);
+    // if(result != CL_SUCCESS) printOpenCLError("clEnqueueReadBuffer", result);
+    // result = clEnqueueReadBuffer(command_queue, bufferrandZ, CL_TRUE, 0, sizerandZ, randZ, 0, NULL, NULL);
+    // if(result != CL_SUCCESS) printOpenCLError("clEnqueueReadBuffer", result);
     
     // debug check output
     // for(int i=0; i<GLOBAL_WORK_ITEMS; i++)
@@ -507,11 +506,11 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
         clSetKernelArg(kernel_serialB, 3, sizeof(cl_mem), (void*) &bufferInput);
 
         
-        // Copy the input vectors to the corresponding buffers
-        result = clEnqueueWriteBuffer(command_queue, bufferInput, CL_TRUE, 0, sizeInput, input, 0, NULL, NULL);
-        if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
-        result = clEnqueueWriteBuffer(command_queue, bufferrandZ, CL_TRUE, 0, sizerandZ, randZ, 0, NULL, NULL);
-        if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
+        // // Copy the input vectors to the corresponding buffers
+        // result = clEnqueueWriteBuffer(command_queue, bufferInput, CL_TRUE, 0, sizeInput, input, 0, NULL, NULL);
+        // if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
+        // result = clEnqueueWriteBuffer(command_queue, bufferrandZ, CL_TRUE, 0, sizerandZ, randZ, 0, NULL, NULL);
+        // if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
         
         // Execute the kernel_serialB
         result = clEnqueueNDRangeKernel(command_queue, kernel_serialB, 1, NULL, global, local, 0, NULL, NULL);
