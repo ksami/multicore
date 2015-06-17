@@ -250,8 +250,9 @@ int main(int argc, char *argv[])
 #ifdef ENABLE_MPI
     i = myid;
 #else
-    for (i = 0; i < nSwaptions; i++) {
+    for (i = 0; i < nSwaptions; i++)
 #endif
+    {
         swaptions[i].Id = i;
         swaptions[i].iN = iN;
         swaptions[i].iFactors = iFactors;
