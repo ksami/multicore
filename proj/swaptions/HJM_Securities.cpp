@@ -265,7 +265,7 @@ int main(int argc, char *argv[])
 
 #ifdef ENABLE_MPI
     }  //myid==0
-    MPI_Bcast(factors, iFactors*(iN-1), MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    //MPI_Bcast(factors, iFactors*(iN-1), MPI_DOUBLE, 0, MPI_COMM_WORLD);
 #endif
 
     // setting up multiple swaptions
@@ -282,17 +282,20 @@ int main(int argc, char *argv[])
     //now only prints myid==0 swaptions
     //need to create custom mpi struct type
     //use bcast scatter gather
+    if(myid==0)
+    {
+
     int chunksize = nSwaptions/numprocs;
     int beg = myid*chunksize;
     int end = (myid+1)*chunksize;
     if(myid == numprocs -1 )
         end = nSwaptions;
-#else
-    int beg = 0;
-    int end = nSwaptions;
+//#else
+    // int beg = 0;
+    // int end = nSwaptions;
 #endif
 
-    for (i = beg; i < end; i++)
+    for (i = 0; i < nSwaptions; i++)
     {
         swaptions[i].Id = i;
         swaptions[i].iN = iN;
@@ -315,6 +318,11 @@ int main(int argc, char *argv[])
             for(j=0;j<=swaptions[i].iN-2;++j)
                 swaptions[i].ppdFactors[k][j] = factors[k][j];
     }
+
+#ifdef ENABLE_MPI
+    }  //myid==0
+    MPI_Scatter((void*)swaptions, end-beg, mpi_parm_type, (void*)&swaptions[beg], end-beg, mpi_parm_type, 0, MPI_COMM_WORLD);
+#endif
 
 
     // **********Calling the Swaption Pricing Routine*****************
