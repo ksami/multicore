@@ -65,6 +65,7 @@ int done_serialB=0;
 const char* name_init = "op_init";
 const char* name_serialB = "op_serialB";
 const char* name_randGen = "op_randGen";
+const char* name_pathGen = "op_pathGen";
 const char* program_src =
 "#define FTYPE double\n"
 "\n"
@@ -175,6 +176,31 @@ const char* program_src =
 "  ppdHJMPath[id] = pdForward[id/BLOCKSIZE];\n"
 "  for(int i=1;i<iN;i++)\n"
 "    { ppdHJMPath[(i*BLOCKSIZE*iN) + id]=0; } //initializing HJMPath to zero\n"
+"}\n"
+"\n"
+"__kernel void op_pathGen(__global FTYPE* ppdFactors, __global FTYPE* pdZ, __global FTYPE* pdTotalDrift, __global FTYPE* output, __global int* input)\n"
+"{\n"
+"  int BLOCKSIZE = input[0];\n"
+"  int iFactors = input[1];\n"
+"  int iN = input[2];\n"
+"  int id = get_global_id(0);\n"
+"  FTYPE dTotalShock = 0;\n"
+"  FTYPE ddelt = (FTYPE)(5.5/iN);\n"
+"  FTYPE sqrt_ddelt = sqrt(ddelt);\n"
+"\n"
+"  if(id<BLOCKSIZE){\n"
+"    int b=id;\n"
+"    for (j=1;j<=iN-1;++j) {// j is the timestep\n"
+"      for (l=0;l<=iN-(j+1);++l){ // l is the future steps\n"
+"        dTotalShock = 0;\n"
+"        for (i=0;i<=iFactors-1;++i){// i steps through the stochastic factors\n"
+"          dTotalShock += ppdFactors[(i*(iN-1))+l]* pdZ[(i*BLOCKSIZE*iN) + BLOCKSIZE*j + b];\n"
+"        }            \n"
+"  \n"
+"        ppdHJMPath[(j*BLOCKSIZE*iN)+BLOCKSIZE*l+b] = ppdHJMPath[((j-1)*BLOCKSIZE*iN)+BLOCKSIZE*(l+1)+b]+ pdTotalDrift[l]*ddelt + sqrt_ddelt*dTotalShock;\n"
+"      }\n"
+"    }\n"
+"  }\n"
 "}\n";
 
 cl_platform_id platform;
@@ -185,18 +211,23 @@ cl_program program;
 cl_kernel kernel_init;
 cl_kernel kernel_serialB;
 cl_kernel kernel_randGen;
+cl_kernel kernel_pathGen;
 size_t sizeOutput;
 size_t sizeInput;
 size_t sizepdZ;
 size_t sizerandZ;
 size_t sizeppdHJMPath;
 size_t sizepdForward;
+size_t sizeppdFactors;
+size_t sizepdTotalDrift;
 cl_mem bufferOutput;
 cl_mem bufferInput;
 cl_mem bufferpdZ;
 cl_mem bufferrandZ;
 cl_mem bufferppdHJMPath;
 cl_mem bufferpdForward;
+cl_mem bufferppdFactors;
+cl_mem bufferpdTotalDrift;
 
 // OpenCL Errors //
 void printOpenCLError(char* functionName, cl_int error)
@@ -300,7 +331,7 @@ int HJM_SimPath_Forward_Blocking(FTYPE *ppdHJMPath,    //Matrix that stores gene
                  FTYPE dYears,          //Number of years
                  FTYPE *pdForward,      //t=0 Forward curve
                  FTYPE *pdTotalDrift,   //Vector containing total drift corrections for different maturities
-                 FTYPE **ppdFactors,    //Factor volatilities
+                 FTYPE **dppdFactors,    //Factor volatilities
                  long *lRndSeed,            //Random number seed
                  int BLOCKSIZE, FTYPE* pdZ, FTYPE* randZ)
 {   
@@ -401,6 +432,8 @@ int HJM_SimPath_Forward_Blocking(FTYPE *ppdHJMPath,    //Matrix that stores gene
     if(result!=CL_SUCCESS) printOpenCLError("clCreateKernel", result);
     kernel_randGen = clCreateKernel(program, name_randGen, &result);
     if(result!=CL_SUCCESS) printOpenCLError("clCreateKernel", result);
+    kernel_pathGen = clCreateKernel(program, name_pathGen, &result);
+    if(result!=CL_SUCCESS) printOpenCLError("clCreateKernel", result);
 
     // Allocate buffer memory objects        
     sizeOutput = GLOBAL_WORK_ITEMS * sizeof(FTYPE);
@@ -409,18 +442,24 @@ int HJM_SimPath_Forward_Blocking(FTYPE *ppdHJMPath,    //Matrix that stores gene
     sizerandZ = iFactors * iN * BLOCKSIZE * sizeof(FTYPE);
     sizeppdHJMPath = iN * iN * BLOCKSIZE * sizeof(FTYPE);
     sizepdForward = iN * sizeof(FTYPE);
+    sizeppdFactors = iFactors * (iN-1) * sizeof(FTYPE);
+    sizepdTotalDrift = (iN-1) * sizeof(FTYPE);
     
     bufferOutput = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeOutput, NULL, &result);
     if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
     bufferInput = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeInput, NULL, &result);
     if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
-    bufferpdZ = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizepdZ, NULL, &result);
+    bufferpdZ = clCreateBuffer(context, CL_MEM_READ_WRITE, sizepdZ, NULL, &result);
     if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
     bufferrandZ = clCreateBuffer(context, CL_MEM_READ_WRITE, sizerandZ, NULL, &result);
     if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
-    bufferppdHJMPath = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeppdHJMPath, NULL, &result);
+    bufferppdHJMPath = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeppdHJMPath, NULL, &result);
     if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
     bufferpdForward = clCreateBuffer(context, CL_MEM_READ_ONLY, sizepdForward, NULL, &result);
+    if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
+    bufferppdFactors = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeppdFactors, NULL, &result);
+    if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
+    bufferpdTotalDrift = clCreateBuffer(context, CL_MEM_READ_ONLY, sizepdTotalDrift, NULL, &result);
     if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
     done_serialB=1;
 
@@ -434,7 +473,11 @@ int HJM_SimPath_Forward_Blocking(FTYPE *ppdHJMPath,    //Matrix that stores gene
     int i,j,l; //looping variables
 
     FTYPE dTotalShock; //total shock by which the forward curve is hit at (t, T-t)
-    FTYPE ddelt, sqrt_ddelt; //length of time steps 
+    FTYPE ddelt, sqrt_ddelt; //length of time steps
+    FTYPE *ppdFactors;
+    ppdFactors = (FTYPE*) malloc(iFactors*(iN-1)*sizeof(FTYPE));
+    for(int i=0; i<iFactors*(iN-1); i++)
+      ppdFactors[i] = dppdFactors[i/(iN-1)][i%(iN-1)];
 
     ddelt = (FTYPE)(dYears/iN);
     sqrt_ddelt = sqrt(ddelt);
@@ -582,8 +625,8 @@ int HJM_SimPath_Forward_Blocking(FTYPE *ppdHJMPath,    //Matrix that stores gene
         // Copy the result from bufferOutput to output
         result = clEnqueueReadBuffer(command_queue, bufferOutput, CL_TRUE, 0, sizeOutput, output, 0, NULL, NULL);
         if(result != CL_SUCCESS) printOpenCLError("clEnqueueReadBuffer", result);
-        result = clEnqueueReadBuffer(command_queue, bufferpdZ, CL_TRUE, 0, sizepdZ, pdZ, 0, NULL, NULL);
-        if(result != CL_SUCCESS) printOpenCLError("clEnqueueReadBuffer", result);
+        // result = clEnqueueReadBuffer(command_queue, bufferpdZ, CL_TRUE, 0, sizepdZ, pdZ, 0, NULL, NULL);
+        // if(result != CL_SUCCESS) printOpenCLError("clEnqueueReadBuffer", result);
 
 
         //debug check output
@@ -602,13 +645,55 @@ int HJM_SimPath_Forward_Blocking(FTYPE *ppdHJMPath,    //Matrix that stores gene
     //TODO:
     // =====================================================
     // Generation of HJM Path1
+#ifdef ENABLE_OPENCL
+    clSetKernelArg(kernel_pathGen, 0, sizeof(cl_mem), (void*) &bufferppdFactors);
+    clSetKernelArg(kernel_pathGen, 1, sizeof(cl_mem), (void*) &bufferpdZ);
+    clSetKernelArg(kernel_pathGen, 2, sizeof(cl_mem), (void*) &bufferpdTotalDrift);
+    clSetKernelArg(kernel_pathGen, 3, sizeof(cl_mem), (void*) &bufferOutput);
+    clSetKernelArg(kernel_pathGen, 4, sizeof(cl_mem), (void*) &bufferInput);
+
+    // Set input
+    // result = clEnqueueWriteBuffer(command_queue, bufferInput, CL_FALSE, 0, sizeInput, input, 0, NULL, NULL);
+    // if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
+    // result = clEnqueueWriteBuffer(command_queue, bufferpdZ, CL_FALSE, 0, sizepdZ, pdZ, 0, NULL, NULL);
+    // if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
+    result = clEnqueueWriteBuffer(command_queue, bufferppdFactors, CL_FALSE, 0, sizeppdFactors, ppdFactors, 0, NULL, NULL);
+    if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
+    result = clEnqueueWriteBuffer(command_queue, bufferpdTotalDrift, CL_FALSE, 0, sizepdTotalDrift, pdTotalDrift, 0, NULL, NULL);
+    if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
+
+
+    // Execute the kernel_pathGen
+    result = clEnqueueNDRangeKernel(command_queue, kernel_pathGen, 1, NULL, global, local, 0, NULL, NULL);
+    if(result!=CL_SUCCESS) printOpenCLError("clEnqueueNDRangeKernel", result);
+    
+    // Wait for all commands in queue to finish
+    result = clFinish(command_queue);
+    if(result != CL_SUCCESS) printOpenCLError("clFinish", result);
+
+    // Copy the result from bufferOutput to output
+    // result = clEnqueueReadBuffer(command_queue, bufferOutput, CL_TRUE, 0, sizeOutput, output, 0, NULL, NULL);
+    // if(result != CL_SUCCESS) printOpenCLError("clEnqueueReadBuffer", result);
+    result = clEnqueueReadBuffer(command_queue, bufferppdHJMPath, CL_TRUE, 0, sizeppdHJMPath, ppdHJMPath, 0, NULL, NULL);
+    if(result != CL_SUCCESS) printOpenCLError("clEnqueueReadBuffer", result);
+
+    //debug check output
+    // for(int i=0; i<GLOBAL_WORK_ITEMS; i++)
+    // {
+    //    if(output[i]) printf("%d: %lf\n", i, output[i]);
+    // }
+
+    // Wait for all commands in queue to finish
+    result = clFinish(command_queue);
+    if(result != CL_SUCCESS) printOpenCLError("clFinish", result);
+#else
     for(int b=0; b<BLOCKSIZE; b++){ // b is the blocks
       for (j=1;j<=iN-1;++j) {// j is the timestep
         
         for (l=0;l<=iN-(j+1);++l){ // l is the future steps
           dTotalShock = 0;
           for (i=0;i<=iFactors-1;++i){// i steps through the stochastic factors
-            dTotalShock += ppdFactors[i][l]* pdZ[(i*BLOCKSIZE*iN) + BLOCKSIZE*j + b];               
+            dTotalShock += ppdFactors[(i*(iN-1))+l]* pdZ[(i*BLOCKSIZE*iN) + BLOCKSIZE*j + b];               
           }            
 
           ppdHJMPath[(j*BLOCKSIZE*iN)+BLOCKSIZE*l+b] = ppdHJMPath[((j-1)*BLOCKSIZE*iN)+BLOCKSIZE*(l+1)+b]+ pdTotalDrift[l]*ddelt + sqrt_ddelt*dTotalShock;
@@ -616,8 +701,10 @@ int HJM_SimPath_Forward_Blocking(FTYPE *ppdHJMPath,    //Matrix that stores gene
         }
       }
     } // end Blocks
+#endif  //ENABLE_OPENCL
     // -----------------------------------------------------
 
+    free(ppdFactors);
     // free_dmatrix(pdZ, 0, iFactors -1, 0, iN*BLOCKSIZE -1);
     // free_dmatrix(randZ, 0, iFactors -1, 0, iN*BLOCKSIZE -1);
     iSuccess = 1;
