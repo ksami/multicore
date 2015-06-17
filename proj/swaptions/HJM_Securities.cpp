@@ -196,9 +196,6 @@ int main(int argc, char *argv[])
     }
 #endif //ENABLE_THREADS
 
-#ifdef ENABLE_MPI
-    }  //myid==0
-#endif
 
     // initialize input dataset
     factors = dmatrix(0, iFactors-1, 0, iN-2);
@@ -236,6 +233,11 @@ int main(int argc, char *argv[])
     factors[2][8]= -.001000;
     factors[2][9]= -.001250;
 
+#ifdef ENABLE_MPI
+    }  //myid==0
+    MPI_Bcast(factors, iFactors*(iN-1), MPI_DOUBLE, 0, MPI_COMM_WORLD);
+#endif
+
     // setting up multiple swaptions
     swaptions = 
 #ifdef TBB_VERSION
@@ -245,7 +247,11 @@ int main(int argc, char *argv[])
 #endif
 
     int k;
+#ifdef ENABLE_MPI
+    i = myid;
+#else
     for (i = 0; i < nSwaptions; i++) {
+#endif
         swaptions[i].Id = i;
         swaptions[i].iN = iN;
         swaptions[i].iFactors = iFactors;
@@ -266,7 +272,7 @@ int main(int argc, char *argv[])
         for(k=0;k<=swaptions[i].iFactors-1;++k)
             for(j=0;j<=swaptions[i].iN-2;++j)
                 swaptions[i].ppdFactors[k][j] = factors[k][j];
-        }
+    }
 
 
     // **********Calling the Swaption Pricing Routine*****************
