@@ -20,6 +20,11 @@ ifdef version
     DEF := $(DEF) -DENABLE_OPENCL -DOPENCL_GPU
     LIBS := $(LIBS) -lOpenCL
   endif
+  ifeq "$(version)" "mpi"
+    DEF := $(DEF) -DENABLE_OPENCL -DOPENCL_GPU -DENABLE_MPI
+    LIBS := $(LIBS) -lOpenCL
+    CXX := mpic++
+  endif
 endif
 
 OBJS= CumNormalInv.o MaxFunction.o RanUnif.o nr_routines.o icdf.o \

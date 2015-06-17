@@ -13,6 +13,10 @@
 #include "HJM_Securities.h"
 #include "HJM_type.h"
 
+#ifdef ENABLE_MPI
+#include "mpi.h"
+#endif  //ENABLE_MPI
+
 #ifdef ENABLE_THREADS
 #include <pthread.h>
 #define MAX_THREAD 1024
@@ -116,6 +120,16 @@ int main(int argc, char *argv[])
     
     FTYPE **factors=NULL;
 
+#ifdef ENABLE_MPI
+    int numprocs, myid;
+    MPI_Init(&argc, &argv);
+    MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
+    MPI_Comm_rank(MPI_COMM_WORLD,&myid);
+
+    if(myid==0)
+    {
+#endif  //ENABLE_MPI
+
 #ifdef PARSEC_VERSION
 #define __PARSEC_STRING(x) #x
 #define __PARSEC_XSTRING(x) __PARSEC_STRING(x)
@@ -182,6 +196,9 @@ int main(int argc, char *argv[])
     }
 #endif //ENABLE_THREADS
 
+#ifdef ENABLE_MPI
+    }  //myid==0
+#endif
 
     // initialize input dataset
     factors = dmatrix(0, iFactors-1, 0, iN-2);
@@ -278,8 +295,39 @@ int main(int argc, char *argv[])
 #endif // TBB_VERSION   
 
 #else
+
+#ifdef ENABLE_MPI
+    FTYPE pdSwaptionPrice[2];
+    FTYPE *pdZ = (FTYPE *)malloc(iFactors*BLOCK_SIZE*iN*sizeof(FTYPE));
+    FTYPE *randZ = (FTYPE *)malloc(iFactors*BLOCK_SIZE*iN*sizeof(FTYPE));
+
+    int chunksize = nSwaptions/numprocs;
+    int beg = myid*chunksize;
+    int end = (myid+1)*chunksize;
+    if(myid == numprocs -1 )
+        end = nSwaptions;
+
+    for(int i=beg; i < end; i++) {
+        int iSuccess = HJM_Swaption_Blocking(pdSwaptionPrice,  swaptions[i].dStrike, 
+            swaptions[i].dCompounding, swaptions[i].dMaturity, 
+            swaptions[i].dTenor, swaptions[i].dPaymentInterval,
+            swaptions[i].iN, swaptions[i].iFactors, swaptions[i].dYears, 
+            swaptions[i].pdYield, swaptions[i].ppdFactors,
+            100, NUM_TRIALS, BLOCK_SIZE, 0, pdZ, randZ);
+        assert(iSuccess == 1);
+        swaptions[i].dSimSwaptionMeanPrice = pdSwaptionPrice[0];
+        swaptions[i].dSimSwaptionStdError = pdSwaptionPrice[1];
+    }
+    free(pdZ);
+    free(randZ);
+
+    if(myid==0)
+    {
+#else
     int threadID=0;
     worker(&threadID);
+#endif //ENABLE_MPI
+
 #endif //ENABLE_THREADS
 
 #ifdef ENABLE_PARSEC_HOOKS
@@ -308,6 +356,11 @@ int main(int argc, char *argv[])
 
 #ifdef ENABLE_PARSEC_HOOKS
     __parsec_bench_end();
+#endif
+
+#ifdef ENABLE_MPI
+    }  //myid==0
+    MPI_Finalize();
 #endif
 
     return iSuccess;
