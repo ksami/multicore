@@ -333,8 +333,6 @@ int main(int argc, char *argv[])
     free(pdZ);
     free(randZ);
 
-    if(myid==0)
-    {
 #else
     int threadID=0;
     worker(&threadID);
@@ -346,13 +344,13 @@ int main(int argc, char *argv[])
     __parsec_roi_end();
 #endif
 
-    for (i = 0; i < nSwaptions; i++) {
+    for (i = beg; i < end; i++) {
         fprintf(stderr,"Swaption%d: [SwaptionPrice: %.10lf StdError: %.10lf] \n", 
             i, swaptions[i].dSimSwaptionMeanPrice, swaptions[i].dSimSwaptionStdError);
 
     }
 
-    for (i = 0; i < nSwaptions; i++) {
+    for (i = beg; i < end; i++) {
         free_dvector(swaptions[i].pdYield, 0, swaptions[i].iN-1);
         free_dmatrix(swaptions[i].ppdFactors, 0, swaptions[i].iFactors-1, 0, swaptions[i].iN-2);
     }
@@ -371,7 +369,6 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef ENABLE_MPI
-    }  //myid==0
     MPI_Finalize();
 #endif
 
