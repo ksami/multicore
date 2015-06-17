@@ -178,6 +178,7 @@ cl_mem bufferOutput;
 cl_mem bufferInput;
 cl_mem bufferpdZ;
 cl_mem bufferrandZ;
+cl_mem bufferrandZ1;
 
 // OpenCL Errors //
 void printOpenCLError(char* functionName, cl_int error)
@@ -395,7 +396,9 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
     if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
     bufferpdZ = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizepdZ, NULL, &result);
     if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
-    bufferrandZ = clCreateBuffer(context, CL_MEM_READ_WRITE, sizerandZ, NULL, &result);
+    bufferrandZ = clCreateBuffer(context, CL_MEM_READ_ONLY, sizerandZ, NULL, &result);
+    if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
+    bufferrandZ1 = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizerandZ, NULL, &result);
     if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
     done_serialB=1;
 
@@ -448,7 +451,7 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
     input[1] = iFactors;
     input[2] = iN;
     input[3] = 100;
-    clSetKernelArg(kernel_randGen, 0, sizeof(cl_mem), (void*) &bufferrandZ);
+    clSetKernelArg(kernel_randGen, 0, sizeof(cl_mem), (void*) &bufferrandZ1);
     clSetKernelArg(kernel_randGen, 1, sizeof(cl_mem), (void*) &bufferOutput);
     clSetKernelArg(kernel_randGen, 2, sizeof(cl_mem), (void*) &bufferInput);
 
@@ -467,15 +470,15 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
     // // Copy output
     result = clEnqueueReadBuffer(command_queue, bufferOutput, CL_TRUE, 0, sizeOutput, output, 0, NULL, NULL);
     if(result != CL_SUCCESS) printOpenCLError("clEnqueueReadBuffer", result);
-    result = clEnqueueReadBuffer(command_queue, bufferrandZ, CL_TRUE, 0, sizerandZ, randZ, 0, NULL, NULL);
+    result = clEnqueueReadBuffer(command_queue, bufferrandZ1, CL_TRUE, 0, sizerandZ, randZ, 0, NULL, NULL);
     if(result != CL_SUCCESS) printOpenCLError("clEnqueueReadBuffer", result);
     
     // debug check output
-    for(int i=0; i<GLOBAL_WORK_ITEMS; i++)
-    {
-       // if(output[i]) printf("%d: %lf\n", i, output[i]);
-       printf("%d: %lf\n", i, randZ[i]);
-    }
+    // for(int i=0; i<GLOBAL_WORK_ITEMS; i++)
+    // {
+    //    // if(output[i]) printf("%d: %lf\n", i, output[i]);
+    //    printf("%d: %lf\n", i, randZ[i]);
+    // }
 #else
             for(int i=0; i<BLOCKSIZE*iN*iFactors; i++){
               randZ[i] = RanUnif(lRndSeed);
@@ -506,9 +509,9 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
 
         
         // Copy the input vectors to the corresponding buffers
-        result = clEnqueueWriteBuffer(command_queue, bufferInput, CL_FALSE, 0, sizeInput, input, 0, NULL, NULL);
+        result = clEnqueueWriteBuffer(command_queue, bufferInput, CL_TRUE, 0, sizeInput, input, 0, NULL, NULL);
         if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
-        result = clEnqueueWriteBuffer(command_queue, bufferrandZ, CL_FALSE, 0, sizerandZ, randZ, 0, NULL, NULL);
+        result = clEnqueueWriteBuffer(command_queue, bufferrandZ, CL_TRUE, 0, sizerandZ, randZ, 0, NULL, NULL);
         if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
         
         // Execute the kernel_serialB
@@ -527,10 +530,10 @@ int HJM_SimPath_Forward_Blocking(FTYPE **ppdHJMPath,    //Matrix that stores gen
 
 
         //debug check output
-        //for(int i=0; i<GLOBAL_WORK_ITEMS; i++)
-        //{
-        //    if(output[i]) printf("%d: %lf\n", i, output[i]);
-        //}
+        for(int i=0; i<GLOBAL_WORK_ITEMS; i++)
+        {
+           if(output[i]) printf("%d: %lf\n", i, output[i]);
+        }
         
     #else
     /* 18% of the total executition time */
