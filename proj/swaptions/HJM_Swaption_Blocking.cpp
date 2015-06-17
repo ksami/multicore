@@ -72,7 +72,7 @@ int HJM_Swaption_Blocking(FTYPE *pdSwaptionPrice, //Output vector that will stor
   // *******************************
   // ppdHJMPath = dmatrix(0,iN-1,0,iN-1);
   // ppdHJMPath = dmatrix(0,iN-1,0,iN*BLOCKSIZE-1);    // **** per Trial data **** //
-  ppdHJMPath = malloc(iN*iN*BLOCKSIZE*sizeof(FTYPE)); 
+  ppdHJMPath = (FTYPE*) malloc(iN*iN*BLOCKSIZE*sizeof(FTYPE)); 
   pdForward = dvector(0, iN-1);
   ppdDrifts = dmatrix(0, iFactors-1, 0, iN-2);
   pdTotalDrift = dvector(0, iN-2);
@@ -165,7 +165,7 @@ int HJM_Swaption_Blocking(FTYPE *pdSwaptionPrice, //Output vector that will stor
 
     for(i=0;i<=iN-1;++i){
       for(b=0;b<=BLOCKSIZE-1;b++){
-        pdDiscountingRatePath[BLOCKSIZE*i + b] = ppdHJMPath[i][0 + b];
+        pdDiscountingRatePath[BLOCKSIZE*i + b] = ppdHJMPath[(i*iN*BLOCKSIZE) + b];
       }
     }
     iSuccess = Discount_Factors_Blocking(pdPayoffDiscountFactors, iN, dYears, pdDiscountingRatePath, BLOCKSIZE); /* 15% of the time goes here */
@@ -177,7 +177,7 @@ int HJM_Swaption_Blocking(FTYPE *pdSwaptionPrice, //Output vector that will stor
     for (i=0;i<=iSwapVectorLength-1;++i){
       for(b=0;b<BLOCKSIZE;b++){
         pdSwapRatePath[i*BLOCKSIZE + b] = 
-          ppdHJMPath[iSwapStartTimeIndex][i*BLOCKSIZE + b];
+          ppdHJMPath[(iSwapStartTimeIndex*iN*BLOCKSIZE) + i*BLOCKSIZE + b];
       }
     }
     iSuccess = Discount_Factors_Blocking(pdSwapDiscountFactors, iSwapVectorLength, dSwapVectorYears, pdSwapRatePath, BLOCKSIZE);
