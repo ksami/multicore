@@ -330,7 +330,7 @@ int main(int argc, char *argv[])
                 MPI_Irecv(&swaptions[i].dSimSwaptionMeanPrice, 1, MPI_DOUBLE, i, tag, MPI_COMM_WORLD, &request[idx++]);
                 MPI_Irecv(&swaptions[i].dSimSwaptionStdError, 1, MPI_DOUBLE, i, tag, MPI_COMM_WORLD, &request[idx++]);                
             }
-            MPI_Waitall(2*(numprocs-end), requests, statuses);
+            MPI_Waitall(2*(numprocs-end), request, status);
         }
         else{
             //MPI_send()x2x(beg-end)
@@ -340,7 +340,7 @@ int main(int argc, char *argv[])
                 MPI_Isend(&swaptions[i].dSimSwaptionMeanPrice, 1, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD, &request[idx++]);
                 MPI_Isend(&swaptions[i].dSimSwaptionStdError, 1, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD, &request[idx++]);
             }
-            MPI_Waitall(2*(end-beg), requests, statuses);
+            MPI_Waitall(2*(end-beg), request, status);
         }
     #else
         int threadID=0;
