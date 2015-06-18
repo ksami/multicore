@@ -323,7 +323,7 @@ int main(int argc, char *argv[])
         //int idx=0;
         MPI_Status status;
 
-        for(int i=nSwaptions/numprocs; i<nSwaptions; )
+        for(int i=nSwaptions/numprocs; i<nSwaptions; i++)
         {
             if(myid==(i/(end-beg))){
                 MPI_Sendrecv(&swaptions[i].dSimSwaptionMeanPrice, 1, MPI_DOUBLE, dest, tag, &swaptions[i].dSimSwaptionMeanPrice, 1, MPI_DOUBLE, (i/(end-beg)), tag, MPI_COMM_WORLD, &status);
