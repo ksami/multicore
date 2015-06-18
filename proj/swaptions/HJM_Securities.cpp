@@ -231,7 +231,11 @@ int main(int argc, char *argv[])
     }  //myid==0
 #endif
     // initialize input dataset
-    factors = dmatrix(0, iFactors-1, 0, iN-2);
+    // factors = dmatrix(0, iFactors-1, 0, iN-2);
+    factors = (FTYPE**) malloc(iFactors*sizeof(FTYPE*));
+    for(int i=0; i<iFactors; i++){
+        factors[i] = (FTYPE*) malloc((iN-1)*sizeof(FTYPE));
+    }
     //the three rows store vol data for the three factors
     factors[0][0]= .01;
     factors[0][1]= .01;
@@ -281,10 +285,7 @@ int main(int argc, char *argv[])
 
     int k;
 #ifdef ENABLE_MPI
-    //TODO: stopped here, how to bcast custom struct array swaptions?
-    //now only prints myid==0 swaptions
-    //need to create custom mpi struct type
-    //use bcast scatter gather
+    //TODO: convert opencl code to use multiple gpus
 
     int chunksize = nSwaptions/numprocs;
     int beg = myid*chunksize;
@@ -292,10 +293,6 @@ int main(int argc, char *argv[])
     if(myid == numprocs -1 )
         end = nSwaptions;
     
-    if(myid==0)
-    {
-    beg = 0;
-    end=nSwaptions;
 #else
     int beg = 0;
     int end = nSwaptions;
@@ -325,33 +322,33 @@ int main(int argc, char *argv[])
         for(k=0;k<=swaptions[i].iFactors-1;++k){
             swaptions[i].ppdFactors[k] = (FTYPE*) malloc((swaptions[i].iN-1)*sizeof(FTYPE));
 
-     //       for(j=0;j<=swaptions[i].iN-2;++j){
-                //swaptions[i].ppdFactors[k][j] = factors[k][j];
-                //printf("k: %d, j: %d\n", k, j);
-       //         swaptions[i].ppdFactors[k][j] = 0;
-         //   }
+           for(j=0;j<=swaptions[i].iN-2;++j){
+                swaptions[i].ppdFactors[k][j] = factors[k][j];
+                // printf("k: %d, j: %d\n", k, j);
+                // swaptions[i].ppdFactors[k][j] = 0;
+           }
         //printf("%d: %lf\n",i,swaptions[i].ppdFactors[0][0]);
         }
     }
 
 #ifdef ENABLE_MPI
-    }  //myid==0
+    //}  //myid==0
     //MPI_Barrier(MPI_COMM_WORLD);
    // MPI_Scatter((void*)swaptions, end-beg, mpi_parm_type, (void*)&swaptions[beg], end-beg, mpi_parm_type, 0, MPI_COMM_WORLD);
 #endif
 
     // **********Calling the Swaption Pricing Routine*****************
 #ifdef ENABLE_PARSEC_HOOKS
-    //__parsec_roi_begin();
+    __parsec_roi_begin();
 #endif
 
 #ifdef ENABLE_THREADS
 
 #ifdef TBB_VERSION
-    //Worker w;
-    //tbb::parallel_for(tbb::blocked_range<int>(0,nSwaptions,TBB_GRAINSIZE),w);
+    Worker w;
+    tbb::parallel_for(tbb::blocked_range<int>(0,nSwaptions,TBB_GRAINSIZE),w);
 #else
-/*
+
     int threadIDs[nThreads];
     for (i = 0; i < nThreads; i++) {
         threadIDs[i] = i;
@@ -362,34 +359,34 @@ int main(int argc, char *argv[])
     }
 
     free(threads);
-*/
+
 #endif // TBB_VERSION   
 
 #else
 
 #ifdef ENABLE_MPIi
-/*    FTYPE *pdSwaptionPrice = (FTYPE*) malloc(2*sizeof(FTYPE));
+    FTYPE *pdSwaptionPrice = (FTYPE*) malloc(2*sizeof(FTYPE));
     FTYPE *pdZ = (FTYPE *)malloc(iFactors*BLOCK_SIZE*iN*sizeof(FTYPE));
     FTYPE *randZ = (FTYPE *)malloc(iFactors*BLOCK_SIZE*iN*sizeof(FTYPE));
 
     for(int i=beg; i < end; i++) {
-        //int iSuccess = HJM_Swaption_Blocking(pdSwaptionPrice,  swaptions[i].dStrike, 
+        int iSuccess = HJM_Swaption_Blocking(pdSwaptionPrice,  swaptions[i].dStrike, 
             swaptions[i].dCompounding, swaptions[i].dMaturity, 
             swaptions[i].dTenor, swaptions[i].dPaymentInterval,
             swaptions[i].iN, swaptions[i].iFactors, swaptions[i].dYears, 
             swaptions[i].pdYield, swaptions[i].ppdFactors,
             100, NUM_TRIALS, BLOCK_SIZE, 0, pdZ, randZ);
-        //assert(iSuccess == 1);
-        //swaptions[i].dSimSwaptionMeanPrice = pdSwaptionPrice[0];
-        //swaptions[i].dSimSwaptionStdError = pdSwaptionPrice[1];
-        swaptions[i].dSimSwaptionMeanPrice = 0;
-        swaptions[i].dSimSwaptionStdError = 0;
+        assert(iSuccess == 1);
+        swaptions[i].dSimSwaptionMeanPrice = pdSwaptionPrice[0];
+        swaptions[i].dSimSwaptionStdError = pdSwaptionPrice[1];
+        // swaptions[i].dSimSwaptionMeanPrice = 0;
+        // swaptions[i].dSimSwaptionStdError = 0;
     }
     free(pdZ);
     free(randZ);
     free(pdSwaptionPrice);
-*/
-    //MPI_Gather((void*)&swaptions[beg], end-beg, mpi_parm_type, (void*)&swaptions[beg], end-beg, mpi_parm_type, 0, MPI_COMM_WORLD);
+
+    MPI_Gather((void*)&swaptions[beg], end-beg, mpi_parm_type, (void*)&swaptions[beg], end-beg, mpi_parm_type, 0, MPI_COMM_WORLD);
 
 #else
     int threadID=0;
@@ -398,7 +395,7 @@ int main(int argc, char *argv[])
 
 #endif //ENABLE_THREADS
 
-/*
+
 #ifdef ENABLE_PARSEC_HOOKS
     __parsec_roi_end();
 #endif
@@ -408,7 +405,7 @@ int main(int argc, char *argv[])
     {
 #endif
 
-    printf("whee\n");
+    // printf("whee\n");
     for (i = 0; i < nSwaptions; i++) {
         fprintf(stderr,"Swaption%d: [SwaptionPrice: %.10lf StdError: %.10lf] \n", 
             i, swaptions[i].dSimSwaptionMeanPrice, swaptions[i].dSimSwaptionStdError);
@@ -430,7 +427,7 @@ int main(int argc, char *argv[])
 #else
     free(swaptions);
 #endif // TBB_VERSION
-*/
+
     //***********************************************************
 
 #ifdef ENABLE_PARSEC_HOOKS
@@ -438,9 +435,8 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef ENABLE_MPI
-    //MPI_Type_free(&mpi_parm_type);
+    MPI_Type_free(&mpi_parm_type);
     MPI_Finalize();
 #endif
-return 0;
-    //return iSuccess;
+    return iSuccess;
 }
