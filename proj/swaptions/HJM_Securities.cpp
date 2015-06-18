@@ -320,40 +320,42 @@ int main(int argc, char *argv[])
         worker(&myid);
         const int dest = 0;
         const int tag = 1000;
-        int idx=0;
-        // MPI_Status status;
+        //int idx=0;
+        MPI_Status status;
 
-        // for(int i=1; i<numprocs; )
-        // {
-        //     MPI_Sendrecv(&swaptions[i].dSimSwaptionMeanPrice, 1, MPI_DOUBLE, dest, tag, &swaptions[i].dSimSwaptionMeanPrice, 1, MPI_DOUBLE, i, tag, MPI_COMM_WORLD, &status);
-        //     MPI_Sendrecv(&swaptions[i].dSimSwaptionStdError, 1, MPI_DOUBLE, dest, tag, &swaptions[i].dSimSwaptionStdError, 1, MPI_DOUBLE, i, tag, MPI_COMM_WORLD, &status);                
-        // }
+        for(int i=nSwaptions/numprocs; i<nSwaptions; )
+        {
+            if(myid==(i/(end-beg))){
+                MPI_Sendrecv(&swaptions[i].dSimSwaptionMeanPrice, 1, MPI_DOUBLE, dest, tag, &swaptions[i].dSimSwaptionMeanPrice, 1, MPI_DOUBLE, (i/(end-beg)), tag, MPI_COMM_WORLD, &status);
+                MPI_Sendrecv(&swaptions[i].dSimSwaptionStdError, 1, MPI_DOUBLE, dest, tag, &swaptions[i].dSimSwaptionStdError, 1, MPI_DOUBLE, (i/(end-beg)), tag, MPI_COMM_WORLD, &status);                
+            }
+        }
 
         //TODO:
-        if(myid==0){
-            //MPI_recv()x2x(numprocs-end)
-            MPI_Request request[2*(nSwaptions-end)];
-            MPI_Status status[2*(nSwaptions-end)];
-            for(int i=end; i<nSwaptions; i++){
-                printf("i: %d\n", i);
-                MPI_Irecv(&swaptions[i].dSimSwaptionMeanPrice, 1, MPI_DOUBLE, i/(end-beg), tag, MPI_COMM_WORLD, &request[idx++]);
-                MPI_Irecv(&swaptions[i].dSimSwaptionStdError, 1, MPI_DOUBLE, i/(end-beg), tag, MPI_COMM_WORLD, &request[idx++]);                
-            }
-            printf("waiting\n", i);
-            MPI_Waitall(2*(nSwaptions-end), request, status);
-            printf("done waiting\n", i);
+        // if(myid==0){
+        //     //MPI_recv()x2x(numprocs-end)
+        //     MPI_Request request[2*(nSwaptions-end)];
+        //     MPI_Status status[2*(nSwaptions-end)];
+        //     for(int i=end; i<nSwaptions; i++){
+        //         printf("i: %d\n", i);
+        //         MPI_Irecv(&swaptions[i].dSimSwaptionMeanPrice, 1, MPI_DOUBLE, i/(end-beg), tag, MPI_COMM_WORLD, &request[idx++]);
+        //         MPI_Irecv(&swaptions[i].dSimSwaptionStdError, 1, MPI_DOUBLE, i/(end-beg), tag, MPI_COMM_WORLD, &request[idx++]);                
+        //     }
+        //     printf("waiting\n");
+        //     MPI_Waitall(2*(nSwaptions-end), request, status);
+        //     printf("done waiting\n");
 
-        }
-        else{
-            //MPI_send()x2x(beg-end)
-            MPI_Request request[2*(end-beg)];
-            MPI_Status status[2*(end-beg)];
-            for(int i=beg; i<end; i++){
-                MPI_Isend(&swaptions[i].dSimSwaptionMeanPrice, 1, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD, &request[idx++]);
-                MPI_Isend(&swaptions[i].dSimSwaptionStdError, 1, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD, &request[idx++]);
-            }
-            MPI_Waitall(2*(end-beg), request, status);
-        }
+        // }
+        // else{
+        //     //MPI_send()x2x(beg-end)
+        //     MPI_Request request[2*(end-beg)];
+        //     MPI_Status status[2*(end-beg)];
+        //     for(int i=beg; i<end; i++){
+        //         MPI_Isend(&swaptions[i].dSimSwaptionMeanPrice, 1, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD, &request[idx++]);
+        //         MPI_Isend(&swaptions[i].dSimSwaptionStdError, 1, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD, &request[idx++]);
+        //     }
+        //     MPI_Waitall(2*(end-beg), request, status);
+        // }
     #else
         int threadID=0;
         worker(&threadID);
