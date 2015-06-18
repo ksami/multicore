@@ -83,11 +83,21 @@ void * worker(void *arg){
     FTYPE *pdZ = (FTYPE *)malloc(3*16*11*sizeof(FTYPE));
     FTYPE *randZ = (FTYPE *)malloc(3*16*11*sizeof(FTYPE));
 
+#ifdef ENABLE_MPI
+    int numprocs;
+    MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
+    int chunksize = nSwaptions/numprocs;
+    int beg = tid*chunksize;
+    int end = (tid+1)*chunksize;
+    if(tid == numprocs -1 )
+        end = nSwaptions;
+#else
     int chunksize = nSwaptions/nThreads;
     int beg = tid*chunksize;
     int end = (tid+1)*chunksize;
     if(tid == nThreads -1 )
         end = nSwaptions;
+#endif
 
     for(int i=beg; i < end; i++) {
         int iSuccess = HJM_Swaption_Blocking(pdSwaptionPrice,  swaptions[i].dStrike, 
@@ -244,8 +254,19 @@ int main(int argc, char *argv[])
     (parm *)malloc(sizeof(parm)*nSwaptions);
 #endif
 
+#ifdef ENABLE_MPI
+    int chunksize = nSwaptions/numprocs;
+    int beg = myid*chunksize;
+    int end = (myid+1)*chunksize;
+    if(myid == numprocs -1 )
+        end = nSwaptions;
+#else
+    int beg = 0;
+    int end = nSwaptions;
+#endif
+
     int k;
-    for (i = 0; i < nSwaptions; i++) {
+    for (i = beg; i < end; i++) {
         swaptions[i].Id = i;
         swaptions[i].iN = iN;
         swaptions[i].iFactors = iFactors;
@@ -295,8 +316,12 @@ int main(int argc, char *argv[])
 #endif // TBB_VERSION   
 
 #else
-    int threadID=0;
-    worker(&threadID);
+    #ifdef ENABLE_MPI
+        worker(&myid);
+    #else
+        int threadID=0;
+        worker(&threadID);
+    #endif
 #endif //ENABLE_THREADS
 
 #ifdef ENABLE_PARSEC_HOOKS
