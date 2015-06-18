@@ -333,8 +333,8 @@ int main(int argc, char *argv[])
             //MPI_send()x2x(beg-end)
             MPI_Request request;
             for(int i=beg; i<end; i++){
-                MPI_ISend(&swaptions[i].dSimSwaptionMeanPrice, 1, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD, &request);
-                MPI_ISend(&swaptions[i].dSimSwaptionStdError, 1, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD, &request);
+                MPI_Isend(&swaptions[i].dSimSwaptionMeanPrice, 1, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD, &request);
+                MPI_Isend(&swaptions[i].dSimSwaptionStdError, 1, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD, &request);
             }
         }
     #else
