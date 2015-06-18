@@ -116,6 +116,16 @@ int main(int argc, char *argv[])
     
     FTYPE **factors=NULL;
 
+#ifdef ENABLE_MPI
+    int myid, numprocs;
+    MPI_Init(&argc, &argv);
+    MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
+    MPI_Comm_rank(MPI_COMM_WORLD, &myid);
+
+    if(myid==0)
+    {
+#endif
+
 #ifdef PARSEC_VERSION
 #define __PARSEC_STRING(x) #x
 #define __PARSEC_XSTRING(x) __PARSEC_STRING(x)
@@ -182,6 +192,9 @@ int main(int argc, char *argv[])
     }
 #endif //ENABLE_THREADS
 
+#ifdef ENABLE_MPI
+    } //myid==0
+#endif
 
     // initialize input dataset
     factors = dmatrix(0, iFactors-1, 0, iN-2);
@@ -308,6 +321,10 @@ int main(int argc, char *argv[])
 
 #ifdef ENABLE_PARSEC_HOOKS
     __parsec_bench_end();
+#endif
+
+#ifdef ENABLE_MPI
+    MPI_Finalize();
 #endif
 
     return iSuccess;
