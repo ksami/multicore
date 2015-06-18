@@ -318,8 +318,24 @@ int main(int argc, char *argv[])
 #else
     #ifdef ENABLE_MPI
         worker(&myid);
-        //if(myid==0){MPI_recv()x13xnumprocs}
-        //else{MPI_send()x13}
+        const int dest = 0;
+        const int tag = 7;
+        //TODO:
+        if(myid==0){
+            //MPI_recv()x2x(numprocs-end)
+            MPI_Status status;
+            for(int i=end; i<numprocs; i++){
+                MPI_Recv(&swaptions[i].dSimSwaptionMeanPrice, 1, MPI_DOUBLE, i, tag, MPI_COMM_WORLD, &status);
+                MPI_Recv(&swaptions[i].dSimSwaptionStdError, 1, MPI_DOUBLE, i, tag, MPI_COMM_WORLD, &status);                
+            }
+        }
+        else{
+            //MPI_send()x2x(beg-end)
+            for(int i=beg; i<end; i++){
+                MPI_Send(&swaptions[i].dSimSwaptionMeanPrice, 1, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD);
+                MPI_Send(&swaptions[i].dSimSwaptionStdError, 1, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD);
+            }
+        }
     #else
         int threadID=0;
         worker(&threadID);
@@ -329,18 +345,28 @@ int main(int argc, char *argv[])
 #ifdef ENABLE_PARSEC_HOOKS
     __parsec_roi_end();
 #endif
-/*
+
+
+#ifdef ENABLE_MPI
+    if(myid==0)
+    {
+#endif
+
     for (i = 0; i < nSwaptions; i++) {
         fprintf(stderr,"Swaption%d: [SwaptionPrice: %.10lf StdError: %.10lf] \n", 
             i, swaptions[i].dSimSwaptionMeanPrice, swaptions[i].dSimSwaptionStdError);
 
     }
 
-    for (i = 0; i < nSwaptions; i++) {
+#ifdef ENABLE_MPI
+    }  //myid==0
+#endif
+
+    for (i = beg; i < end; i++) {
         free_dvector(swaptions[i].pdYield, 0, swaptions[i].iN-1);
         free_dmatrix(swaptions[i].ppdFactors, 0, swaptions[i].iFactors-1, 0, swaptions[i].iN-2);
     }
-*/
+
 
 #ifdef TBB_VERSION
     memory_parm.deallocate(swaptions, sizeof(parm));
