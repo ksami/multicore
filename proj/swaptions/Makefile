@@ -25,6 +25,12 @@ ifdef version
     LIBS := $(LIBS) -lOpenCL
     CXX := mpic++
   endif
+  ifeq "$(version)" "snucl"
+    DEF := $(DEF) -DENABLE_OPENCL -DOPENCL_GPU
+    LIBS := $(LIBS) -L$(SNUCLROOT)/lib -lsnucl_cluster
+    INCLUDE := $(INCLUDE) -I$(SNUCLROOT)/inc
+    CXX := mpic++
+  endif
 endif
 
 OBJS= CumNormalInv.o MaxFunction.o RanUnif.o nr_routines.o icdf.o \
