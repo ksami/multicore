@@ -319,18 +319,30 @@ int main(int argc, char *argv[])
     #ifdef ENABLE_MPI
         worker(&myid);
         const int dest = 0;
-        const int tag = 7;
-        int idx=myid;
+        const int tag = 1000;
+        int idx=0;
+        // MPI_Status status;
+
+        // for(int i=1; i<numprocs; )
+        // {
+        //     MPI_Sendrecv(&swaptions[i].dSimSwaptionMeanPrice, 1, MPI_DOUBLE, dest, tag, &swaptions[i].dSimSwaptionMeanPrice, 1, MPI_DOUBLE, i, tag, MPI_COMM_WORLD, &status);
+        //     MPI_Sendrecv(&swaptions[i].dSimSwaptionStdError, 1, MPI_DOUBLE, dest, tag, &swaptions[i].dSimSwaptionStdError, 1, MPI_DOUBLE, i, tag, MPI_COMM_WORLD, &status);                
+        // }
+
         //TODO:
         if(myid==0){
             //MPI_recv()x2x(numprocs-end)
-            MPI_Request request[2*(numprocs-end)];
-            MPI_Status status[2*(numprocs-end)];
-            for(int i=end; i<numprocs; i++){
-                MPI_Irecv(&swaptions[i].dSimSwaptionMeanPrice, 1, MPI_DOUBLE, i, tag, MPI_COMM_WORLD, &request[idx++]);
-                MPI_Irecv(&swaptions[i].dSimSwaptionStdError, 1, MPI_DOUBLE, i, tag, MPI_COMM_WORLD, &request[idx++]);                
+            MPI_Request request[2*(nSwaptions-end)];
+            MPI_Status status[2*(nSwaptions-end)];
+            for(int i=end; i<nSwaptions; i++){
+                printf("i: %d\n", i);
+                MPI_Irecv(&swaptions[i].dSimSwaptionMeanPrice, 1, MPI_DOUBLE, i/(end-beg), tag, MPI_COMM_WORLD, &request[idx++]);
+                MPI_Irecv(&swaptions[i].dSimSwaptionStdError, 1, MPI_DOUBLE, i/(end-beg), tag, MPI_COMM_WORLD, &request[idx++]);                
             }
-            MPI_Waitall(2*(numprocs-end), request, status);
+            printf("waiting\n", i);
+            MPI_Waitall(2*(nSwaptions-end), request, status);
+            printf("done waiting\n", i);
+
         }
         else{
             //MPI_send()x2x(beg-end)
