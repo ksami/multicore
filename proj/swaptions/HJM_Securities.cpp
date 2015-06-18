@@ -318,6 +318,8 @@ int main(int argc, char *argv[])
 #else
     #ifdef ENABLE_MPI
         worker(&myid);
+        //if(myid==0){MPI_recv()x13xnumprocs}
+        //else{MPI_send()x13}
     #else
         int threadID=0;
         worker(&threadID);
@@ -327,7 +329,7 @@ int main(int argc, char *argv[])
 #ifdef ENABLE_PARSEC_HOOKS
     __parsec_roi_end();
 #endif
-
+/*
     for (i = 0; i < nSwaptions; i++) {
         fprintf(stderr,"Swaption%d: [SwaptionPrice: %.10lf StdError: %.10lf] \n", 
             i, swaptions[i].dSimSwaptionMeanPrice, swaptions[i].dSimSwaptionStdError);
@@ -338,7 +340,7 @@ int main(int argc, char *argv[])
         free_dvector(swaptions[i].pdYield, 0, swaptions[i].iN-1);
         free_dmatrix(swaptions[i].ppdFactors, 0, swaptions[i].iFactors-1, 0, swaptions[i].iN-2);
     }
-
+*/
 
 #ifdef TBB_VERSION
     memory_parm.deallocate(swaptions, sizeof(parm));
