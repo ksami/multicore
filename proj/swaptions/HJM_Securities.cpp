@@ -208,6 +208,7 @@ int main(int argc, char *argv[])
 
 #ifdef ENABLE_MPI
     } //myid==0
+    MPI_Bcast(&nSwaptions, 1, MPI_INT, 0, MPI_COMM_WORLD);
 #endif
 
     // initialize input dataset
