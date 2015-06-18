@@ -320,22 +320,27 @@ int main(int argc, char *argv[])
         worker(&myid);
         const int dest = 0;
         const int tag = 7;
+        int idx=myid;
         //TODO:
         if(myid==0){
             //MPI_recv()x2x(numprocs-end)
-            MPI_Status status;
+            MPI_Request request[2*(numprocs-end)];
+            MPI_Status status[2*(numprocs-end)];
             for(int i=end; i<numprocs; i++){
-                MPI_Recv(&swaptions[i].dSimSwaptionMeanPrice, 1, MPI_DOUBLE, i, tag, MPI_COMM_WORLD, &status);
-                MPI_Recv(&swaptions[i].dSimSwaptionStdError, 1, MPI_DOUBLE, i, tag, MPI_COMM_WORLD, &status);                
+                MPI_Irecv(&swaptions[i].dSimSwaptionMeanPrice, 1, MPI_DOUBLE, i, tag, MPI_COMM_WORLD, &request[idx++]);
+                MPI_Irecv(&swaptions[i].dSimSwaptionStdError, 1, MPI_DOUBLE, i, tag, MPI_COMM_WORLD, &request[idx++]);                
             }
+            MPI_Waitall(2*(numprocs-end), requests, statuses);
         }
         else{
             //MPI_send()x2x(beg-end)
-            MPI_Request request;
+            MPI_Request request[2*(end-beg)];
+            MPI_Status status[2*(end-beg)];
             for(int i=beg; i<end; i++){
-                MPI_Isend(&swaptions[i].dSimSwaptionMeanPrice, 1, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD, &request);
-                MPI_Isend(&swaptions[i].dSimSwaptionStdError, 1, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD, &request);
+                MPI_Isend(&swaptions[i].dSimSwaptionMeanPrice, 1, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD, &request[idx++]);
+                MPI_Isend(&swaptions[i].dSimSwaptionStdError, 1, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD, &request[idx++]);
             }
+            MPI_Waitall(2*(end-beg), requests, statuses);
         }
     #else
         int threadID=0;
