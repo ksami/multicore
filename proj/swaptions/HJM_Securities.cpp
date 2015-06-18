@@ -331,9 +331,10 @@ int main(int argc, char *argv[])
         }
         else{
             //MPI_send()x2x(beg-end)
+            MPI_Request request;
             for(int i=beg; i<end; i++){
-                MPI_Send(&swaptions[i].dSimSwaptionMeanPrice, 1, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD);
-                MPI_Send(&swaptions[i].dSimSwaptionStdError, 1, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD);
+                MPI_ISend(&swaptions[i].dSimSwaptionMeanPrice, 1, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD, &request);
+                MPI_ISend(&swaptions[i].dSimSwaptionStdError, 1, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD, &request);
             }
         }
     #else
