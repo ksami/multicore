@@ -61,6 +61,8 @@ int done_serialB=0;
 
 #ifdef ENABLE_OPENCL
 #include <CL/cl.h>
+#define MAX_DEV 16
+int ndev = 1;
 
 const char* name_init = "op_init";
 const char* name_serialB = "op_serialB";
@@ -204,14 +206,14 @@ const char* program_src =
 "}\n";
 
 cl_platform_id platform;
-cl_device_id device;
+cl_device_id device[MAX_DEV];
 cl_context context;
-cl_command_queue command_queue;
+cl_command_queue command_queue[MAX_DEV];
 cl_program program;
-cl_kernel kernel_init;
-cl_kernel kernel_serialB;
-cl_kernel kernel_randGen;
-cl_kernel kernel_pathGen;
+cl_kernel kernel_init[MAX_DEV];
+cl_kernel kernel_serialB[MAX_DEV];
+cl_kernel kernel_randGen[MAX_DEV];
+cl_kernel kernel_pathGen[MAX_DEV];
 size_t sizeOutput;
 size_t sizeInput;
 size_t sizepdZ;
@@ -220,14 +222,14 @@ size_t sizeppdHJMPath;
 size_t sizepdForward;
 size_t sizeppdFactors;
 size_t sizepdTotalDrift;
-cl_mem bufferOutput;
-cl_mem bufferInput;
-cl_mem bufferpdZ;
-cl_mem bufferrandZ;
-cl_mem bufferppdHJMPath;
-cl_mem bufferpdForward;
-cl_mem bufferppdFactors;
-cl_mem bufferpdTotalDrift;
+cl_mem bufferOutput[MAX_DEV];
+cl_mem bufferInput[MAX_DEV];
+cl_mem bufferpdZ[MAX_DEV];
+cl_mem bufferrandZ[MAX_DEV];
+cl_mem bufferppdHJMPath[MAX_DEV];
+cl_mem bufferpdForward[MAX_DEV];
+cl_mem bufferppdFactors[MAX_DEV];
+cl_mem bufferpdTotalDrift[MAX_DEV];
 
 // OpenCL Errors //
 void printOpenCLError(char* functionName, cl_int error)
@@ -367,21 +369,24 @@ int HJM_SimPath_Forward_Blocking(FTYPE *ppdHJMPath,    //Matrix that stores gene
     // Obtain the list of available devices on the OpenCL platform
     //cl_device_id device;
 #ifdef OPENCL_CPU
-    result = clGetDeviceIDs(platform, CL_DEVICE_TYPE_CPU, 1, &device, NULL);
+    result = clGetDeviceIDs(platform, CL_DEVICE_TYPE_CPU, 0, NULL, (unsigned int*)&ndev);
+    result = clGetDeviceIDs(platform, CL_DEVICE_TYPE_CPU, ndev, device, NULL);
 #else
-    result = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 1, &device, NULL);
+    result = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 0, NULL, (unsigned int*)&ndev);
+    result = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, ndev, device, NULL);
 #endif
     if(result!=CL_SUCCESS) printOpenCLError("clGetDeviceIDs", result);
 
     // Create an OpenCL context on a GPU device
     //cl_context context;
-    context = clCreateContext(0, 1, &device, NULL, NULL, &result);
+    context = clCreateContext(0, ndev, device, NULL, NULL, &result);
     if(result!=CL_SUCCESS) printOpenCLError("clCreateContext", result);
 
     // Create a command queue and attach it to the compute device
     // (in-order queue)
     //cl_command_queue command_queue;
-    command_queue = clCreateCommandQueue(context, device, 0, &result);
+    for (int i = 0; i < ndev; i++)
+        command_queue[i] = clCreateCommandQueue(context, device[i], 0, &result);
     if(result!=CL_SUCCESS) printOpenCLError("clCreateCommandQueue", result);
 
 
@@ -395,7 +400,7 @@ int HJM_SimPath_Forward_Blocking(FTYPE *ppdHJMPath,    //Matrix that stores gene
 
     // Build (compile and link) the program executable 
     // from the source or binary for the device
-    result = clBuildProgram(program, 1, &device, NULL, NULL, NULL);
+    result = clBuildProgram(program, ndev, device, NULL, NULL, NULL);
     if(result!=CL_SUCCESS) printOpenCLError("clBuildProgram", result);
     if (result != CL_SUCCESS) {
         char *buff_erro;
@@ -425,15 +430,17 @@ int HJM_SimPath_Forward_Blocking(FTYPE *ppdHJMPath,    //Matrix that stores gene
         exit(EXIT_FAILURE);
     }
 
-    // Create a kernel object from the program
-    kernel_init = clCreateKernel(program, name_init, &result);
-    if(result!=CL_SUCCESS) printOpenCLError("clCreateKernel", result);
-    kernel_serialB = clCreateKernel(program, name_serialB, &result);
-    if(result!=CL_SUCCESS) printOpenCLError("clCreateKernel", result);
-    kernel_randGen = clCreateKernel(program, name_randGen, &result);
-    if(result!=CL_SUCCESS) printOpenCLError("clCreateKernel", result);
-    kernel_pathGen = clCreateKernel(program, name_pathGen, &result);
-    if(result!=CL_SUCCESS) printOpenCLError("clCreateKernel", result);
+    for (int i = 0; i < ndev; i++) {
+        // Create a kernel object from the program
+        kernel_init[i] = clCreateKernel(program, name_init, &result);
+        if(result!=CL_SUCCESS) printOpenCLError("clCreateKernel", result);
+        kernel_serialB[i] = clCreateKernel(program, name_serialB, &result);
+        if(result!=CL_SUCCESS) printOpenCLError("clCreateKernel", result);
+        kernel_randGen[i] = clCreateKernel(program, name_randGen, &result);
+        if(result!=CL_SUCCESS) printOpenCLError("clCreateKernel", result);
+        kernel_pathGen[i] = clCreateKernel(program, name_pathGen, &result);
+        if(result!=CL_SUCCESS) printOpenCLError("clCreateKernel", result);
+    }
 
     // Allocate buffer memory objects        
     sizeOutput = GLOBAL_WORK_ITEMS * sizeof(FTYPE);
@@ -445,22 +452,25 @@ int HJM_SimPath_Forward_Blocking(FTYPE *ppdHJMPath,    //Matrix that stores gene
     sizeppdFactors = iFactors * (iN-1) * sizeof(FTYPE);
     sizepdTotalDrift = (iN-1) * sizeof(FTYPE);
     
-    bufferOutput = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeOutput, NULL, &result);
-    if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
-    bufferInput = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeInput, NULL, &result);
-    if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
-    bufferpdZ = clCreateBuffer(context, CL_MEM_READ_WRITE, sizepdZ, NULL, &result);
-    if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
-    bufferrandZ = clCreateBuffer(context, CL_MEM_READ_WRITE, sizerandZ, NULL, &result);
-    if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
-    bufferppdHJMPath = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeppdHJMPath, NULL, &result);
-    if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
-    bufferpdForward = clCreateBuffer(context, CL_MEM_READ_ONLY, sizepdForward, NULL, &result);
-    if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
-    bufferppdFactors = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeppdFactors, NULL, &result);
-    if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
-    bufferpdTotalDrift = clCreateBuffer(context, CL_MEM_READ_ONLY, sizepdTotalDrift, NULL, &result);
-    if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
+    for (int i = 0; i < ndev; i++) 
+    {   
+        bufferOutput[i] = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeOutput, NULL, &result);
+        if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
+        bufferInput[i] = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeInput, NULL, &result);
+        if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
+        bufferpdZ[i] = clCreateBuffer(context, CL_MEM_READ_WRITE, sizepdZ, NULL, &result);
+        if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
+        bufferrandZ[i] = clCreateBuffer(context, CL_MEM_READ_WRITE, sizerandZ, NULL, &result);
+        if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
+        bufferppdHJMPath[i] = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeppdHJMPath, NULL, &result);
+        if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
+        bufferpdForward[i] = clCreateBuffer(context, CL_MEM_READ_ONLY, sizepdForward, NULL, &result);
+        if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
+        bufferppdFactors[i] = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeppdFactors, NULL, &result);
+        if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
+        bufferpdTotalDrift[i] = clCreateBuffer(context, CL_MEM_READ_ONLY, sizepdTotalDrift, NULL, &result);
+        if(result!=CL_SUCCESS) printOpenCLError("clCreateBuffer", result);
+    }
     done_serialB=1;
 
 
@@ -497,30 +507,46 @@ int HJM_SimPath_Forward_Blocking(FTYPE *ppdHJMPath,    //Matrix that stores gene
     input[2] = iN;
     input[3] = 100;
 
-    clSetKernelArg(kernel_init, 0, sizeof(cl_mem), (void*) &bufferppdHJMPath);
-    clSetKernelArg(kernel_init, 1, sizeof(cl_mem), (void*) &bufferpdForward);
-    clSetKernelArg(kernel_init, 2, sizeof(cl_mem), (void*) &bufferOutput);
-    clSetKernelArg(kernel_init, 3, sizeof(cl_mem), (void*) &bufferInput);
+    for (int i = 0; i < ndev; i++)
+    {
+        clSetKernelArg(kernel_init[i], 0, sizeof(cl_mem), (void*) &bufferppdHJMPath[i]);
+        clSetKernelArg(kernel_init[i], 1, sizeof(cl_mem), (void*) &bufferpdForward[i]);
+        clSetKernelArg(kernel_init[i], 2, sizeof(cl_mem), (void*) &bufferOutput[i]);
+        clSetKernelArg(kernel_init[i], 3, sizeof(cl_mem), (void*) &bufferInput[i]);
+    }
 
-    // Set input
-    result = clEnqueueWriteBuffer(command_queue, bufferInput, CL_FALSE, 0, sizeInput, input, 0, NULL, NULL);
-    if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
-    result = clEnqueueWriteBuffer(command_queue, bufferpdForward, CL_FALSE, 0, sizepdForward, pdForward, 0, NULL, NULL);
-    if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
+    for (int i = 0; i < ndev; i++)
+    {
+        // Set input
+        // TODO: stopped here, makeing opencl mult devicen
+        result = clEnqueueWriteBuffer(command_queue[i], bufferInput[i], CL_FALSE, 0, sizeInput, input, 0, NULL, NULL);
+        if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
+        result = clEnqueueWriteBuffer(command_queue[i], bufferpdForward[i], CL_FALSE, 0, sizepdForward, pdForward, 0, NULL, NULL);
+        if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
+    }
 
-    // Execute the kernel_init
-    result = clEnqueueNDRangeKernel(command_queue, kernel_init, 1, NULL, global, local, 0, NULL, NULL);
-    if(result!=CL_SUCCESS) printOpenCLError("clEnqueueNDRangeKernel", result);
+    for (int i = 0; i < ndev; i++)
+    {
+        // Execute the kernel_init
+        result = clEnqueueNDRangeKernel(command_queue[i], kernel_init[i], 1, NULL, global, local, 0, NULL, NULL);
+        if(result!=CL_SUCCESS) printOpenCLError("clEnqueueNDRangeKernel", result);
+    }
     
-    // Wait for all commands in queue to finish
-    result = clFinish(command_queue);
-    if(result != CL_SUCCESS) printOpenCLError("clFinish", result);
+    for (int i = 0; i < ndev; i++)
+    {
+        // Wait for all commands in queue to finish
+        result = clFinish(command_queue[i]);
+        if(result != CL_SUCCESS) printOpenCLError("clFinish", result);
+    }
 
-    // Copy the result from bufferOutput to output
-    // result = clEnqueueReadBuffer(command_queue, bufferOutput, CL_TRUE, 0, sizeOutput, output, 0, NULL, NULL);
-    // if(result != CL_SUCCESS) printOpenCLError("clEnqueueReadBuffer", result);
-    result = clEnqueueReadBuffer(command_queue, bufferppdHJMPath, CL_TRUE, 0, sizeppdHJMPath, ppdHJMPath, 0, NULL, NULL);
-    if(result != CL_SUCCESS) printOpenCLError("clEnqueueReadBuffer", result);
+    for (int i = 0; i < ndev; i++)
+    {
+        // Copy the result from bufferOutput to output
+        // result = clEnqueueReadBuffer(command_queue, bufferOutput, CL_TRUE, 0, sizeOutput, output, 0, NULL, NULL);
+        // if(result != CL_SUCCESS) printOpenCLError("clEnqueueReadBuffer", result);
+        result = clEnqueueReadBuffer(command_queue[i], bufferppdHJMPath[i], CL_TRUE, 0, sizeppdHJMPath, ppdHJMPath, 0, NULL, NULL);
+        if(result != CL_SUCCESS) printOpenCLError("clEnqueueReadBuffer", result);
+    }
 
     // debug check output
     // for(int i=0; i<GLOBAL_WORK_ITEMS; i++)
@@ -551,21 +577,30 @@ int HJM_SimPath_Forward_Blocking(FTYPE *ppdHJMPath,    //Matrix that stores gene
             //randZ[(l*BLOCKSIZE*iN) + BLOCKSIZE*j + b + s] = RanUnif(lRndSeed);  /* 10% of the total executition time */
 #ifdef ENABLE_OPENCL
 
-    clSetKernelArg(kernel_randGen, 0, sizeof(cl_mem), (void*) &bufferrandZ);
-    clSetKernelArg(kernel_randGen, 1, sizeof(cl_mem), (void*) &bufferOutput);
-    clSetKernelArg(kernel_randGen, 2, sizeof(cl_mem), (void*) &bufferInput);
+    for (int i = 0; i < ndev; i++)
+    {
+        clSetKernelArg(kernel_randGen[i], 0, sizeof(cl_mem), (void*) &bufferrandZ[i]);
+        clSetKernelArg(kernel_randGen[i], 1, sizeof(cl_mem), (void*) &bufferOutput[i]);
+        clSetKernelArg(kernel_randGen[i], 2, sizeof(cl_mem), (void*) &bufferInput[i]);
+    }
 
     // // Set input
     // result = clEnqueueWriteBuffer(command_queue, bufferInput, CL_FALSE, 0, sizeInput, input, 0, NULL, NULL);
     // if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
 
-    // Execute the kernel_randGen
-    result = clEnqueueNDRangeKernel(command_queue, kernel_randGen, 1, NULL, global, local, 0, NULL, NULL);
-    if(result!=CL_SUCCESS) printOpenCLError("clEnqueueNDRangeKernel", result);
-    
-    // Wait for all commands in queue to finish
-    result = clFinish(command_queue);
-    if(result != CL_SUCCESS) printOpenCLError("clFinish", result);
+    for (int i = 0; i < ndev; i++)
+    {
+        // Execute the kernel_randGen
+        result = clEnqueueNDRangeKernel(command_queue[i], kernel_randGen[i], 1, NULL, global, local, 0, NULL, NULL);
+        if(result!=CL_SUCCESS) printOpenCLError("clEnqueueNDRangeKernel", result);
+    }
+
+    for (int i = 0; i < ndev; i++)
+    {
+        // Wait for all commands in queue to finish
+        result = clFinish(command_queue[i]);
+        if(result != CL_SUCCESS) printOpenCLError("clFinish", result);
+    }
 
     // // Copy output
     // result = clEnqueueReadBuffer(command_queue, bufferOutput, CL_TRUE, 0, sizeOutput, output, 0, NULL, NULL);
@@ -601,12 +636,14 @@ int HJM_SimPath_Forward_Blocking(FTYPE *ppdHJMPath,    //Matrix that stores gene
 #else
     #ifdef ENABLE_OPENCL
 
+    for (int i = 0; i < ndev; i++)
+    {
         // Set the arguments of the kernel_serialB
-        clSetKernelArg(kernel_serialB, 0, sizeof(cl_mem), (void*) &bufferpdZ);
-        clSetKernelArg(kernel_serialB, 1, sizeof(cl_mem), (void*) &bufferrandZ);
-        clSetKernelArg(kernel_serialB, 2, sizeof(cl_mem), (void*) &bufferOutput);
-        clSetKernelArg(kernel_serialB, 3, sizeof(cl_mem), (void*) &bufferInput);
-
+        clSetKernelArg(kernel_serialB[i], 0, sizeof(cl_mem), (void*) &bufferpdZ[i]);
+        clSetKernelArg(kernel_serialB[i], 1, sizeof(cl_mem), (void*) &bufferrandZ[i]);
+        clSetKernelArg(kernel_serialB[i], 2, sizeof(cl_mem), (void*) &bufferOutput[i]);
+        clSetKernelArg(kernel_serialB[i], 3, sizeof(cl_mem), (void*) &bufferInput[i]);
+    }
         
         // // Copy the input vectors to the corresponding buffers
         // result = clEnqueueWriteBuffer(command_queue, bufferInput, CL_TRUE, 0, sizeInput, input, 0, NULL, NULL);
@@ -614,20 +651,28 @@ int HJM_SimPath_Forward_Blocking(FTYPE *ppdHJMPath,    //Matrix that stores gene
         // result = clEnqueueWriteBuffer(command_queue, bufferrandZ, CL_TRUE, 0, sizerandZ, randZ, 0, NULL, NULL);
         // if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
         
+    for (int i = 0; i < ndev; i++)
+    {
         // Execute the kernel_serialB
-        result = clEnqueueNDRangeKernel(command_queue, kernel_serialB, 1, NULL, global, local, 0, NULL, NULL);
+        result = clEnqueueNDRangeKernel(command_queue[i], kernel_serialB[i], 1, NULL, global, local, 0, NULL, NULL);
         if(result!=CL_SUCCESS) printOpenCLError("clEnqueueNDRangeKernel", result);
-        
-        // Wait for all commands in queue to finish
-        result = clFinish(command_queue);
-        if(result != CL_SUCCESS) printOpenCLError("clFinish", result);
+    }
 
+    for (int i = 0; i < ndev; i++)
+    {
+        // Wait for all commands in queue to finish
+        result = clFinish(command_queue[i]);
+        if(result != CL_SUCCESS) printOpenCLError("clFinish", result);
+    }
+
+    for (int i = 0; i < ndev; i++)
+    {
         // Copy the result from bufferOutput to output
-        result = clEnqueueReadBuffer(command_queue, bufferOutput, CL_TRUE, 0, sizeOutput, output, 0, NULL, NULL);
+        result = clEnqueueReadBuffer(command_queue[i], bufferOutput[i], CL_TRUE, 0, sizeOutput, output, 0, NULL, NULL);
         if(result != CL_SUCCESS) printOpenCLError("clEnqueueReadBuffer", result);
         // result = clEnqueueReadBuffer(command_queue, bufferpdZ, CL_TRUE, 0, sizepdZ, pdZ, 0, NULL, NULL);
         // if(result != CL_SUCCESS) printOpenCLError("clEnqueueReadBuffer", result);
-
+    }
 
         //debug check output
         // for(int i=0; i<GLOBAL_WORK_ITEMS; i++)
@@ -646,37 +691,51 @@ int HJM_SimPath_Forward_Blocking(FTYPE *ppdHJMPath,    //Matrix that stores gene
     // =====================================================
     // Generation of HJM Path1
 #ifdef ENABLE_OPENCL
-    clSetKernelArg(kernel_pathGen, 0, sizeof(cl_mem), (void*) &bufferppdHJMPath);
-    clSetKernelArg(kernel_pathGen, 1, sizeof(cl_mem), (void*) &bufferppdFactors);
-    clSetKernelArg(kernel_pathGen, 2, sizeof(cl_mem), (void*) &bufferpdZ);
-    clSetKernelArg(kernel_pathGen, 3, sizeof(cl_mem), (void*) &bufferpdTotalDrift);
-    clSetKernelArg(kernel_pathGen, 4, sizeof(cl_mem), (void*) &bufferOutput);
-    clSetKernelArg(kernel_pathGen, 5, sizeof(cl_mem), (void*) &bufferInput);
+    for (int i = 0; i < ndev; i++)
+    {
+        clSetKernelArg(kernel_pathGen[i], 0, sizeof(cl_mem), (void*) &bufferppdHJMPath[i]);
+        clSetKernelArg(kernel_pathGen[i], 1, sizeof(cl_mem), (void*) &bufferppdFactors[i]);
+        clSetKernelArg(kernel_pathGen[i], 2, sizeof(cl_mem), (void*) &bufferpdZ[i]);
+        clSetKernelArg(kernel_pathGen[i], 3, sizeof(cl_mem), (void*) &bufferpdTotalDrift[i]);
+        clSetKernelArg(kernel_pathGen[i], 4, sizeof(cl_mem), (void*) &bufferOutput[i]);
+        clSetKernelArg(kernel_pathGen[i], 5, sizeof(cl_mem), (void*) &bufferInput[i]);
+    }
 
-    // Set input
-    // result = clEnqueueWriteBuffer(command_queue, bufferInput, CL_FALSE, 0, sizeInput, input, 0, NULL, NULL);
-    // if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
-    // result = clEnqueueWriteBuffer(command_queue, bufferpdZ, CL_FALSE, 0, sizepdZ, pdZ, 0, NULL, NULL);
-    // if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
-    result = clEnqueueWriteBuffer(command_queue, bufferppdFactors, CL_FALSE, 0, sizeppdFactors, ppdFactors, 0, NULL, NULL);
-    if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
-    result = clEnqueueWriteBuffer(command_queue, bufferpdTotalDrift, CL_FALSE, 0, sizepdTotalDrift, pdTotalDrift, 0, NULL, NULL);
-    if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
+    for (int i = 0; i < ndev; i++)
+    {
+        // Set input
+        // result = clEnqueueWriteBuffer(command_queue, bufferInput, CL_FALSE, 0, sizeInput, input, 0, NULL, NULL);
+        // if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
+        // result = clEnqueueWriteBuffer(command_queue, bufferpdZ, CL_FALSE, 0, sizepdZ, pdZ, 0, NULL, NULL);
+        // if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
+        result = clEnqueueWriteBuffer(command_queue[i], bufferppdFactors[i], CL_FALSE, 0, sizeppdFactors, ppdFactors, 0, NULL, NULL);
+        if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
+        result = clEnqueueWriteBuffer(command_queue[i], bufferpdTotalDrift[i], CL_FALSE, 0, sizepdTotalDrift, pdTotalDrift, 0, NULL, NULL);
+        if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
+    }
 
+    for (int i = 0; i < ndev; i++)
+    {
+        // Execute the kernel_pathGen
+        result = clEnqueueNDRangeKernel(command_queue[i], kernel_pathGen[i], 1, NULL, global, local, 0, NULL, NULL);
+        if(result!=CL_SUCCESS) printOpenCLError("clEnqueueNDRangeKernel", result);
+    }
 
-    // Execute the kernel_pathGen
-    result = clEnqueueNDRangeKernel(command_queue, kernel_pathGen, 1, NULL, global, local, 0, NULL, NULL);
-    if(result!=CL_SUCCESS) printOpenCLError("clEnqueueNDRangeKernel", result);
-    
-    // Wait for all commands in queue to finish
-    result = clFinish(command_queue);
-    if(result != CL_SUCCESS) printOpenCLError("clFinish", result);
+    for (int i = 0; i < ndev; i++)
+    {
+        // Wait for all commands in queue to finish
+        result = clFinish(command_queue[i]);
+        if(result != CL_SUCCESS) printOpenCLError("clFinish", result);
+    }
 
-    // Copy the result from bufferOutput to output
-    // result = clEnqueueReadBuffer(command_queue, bufferOutput, CL_TRUE, 0, sizeOutput, output, 0, NULL, NULL);
-    // if(result != CL_SUCCESS) printOpenCLError("clEnqueueReadBuffer", result);
-    result = clEnqueueReadBuffer(command_queue, bufferppdHJMPath, CL_TRUE, 0, sizeppdHJMPath, ppdHJMPath, 0, NULL, NULL);
-    if(result != CL_SUCCESS) printOpenCLError("clEnqueueReadBuffer", result);
+    for (int i = 0; i < ndev; i++)
+    {
+        // Copy the result from bufferOutput to output
+        // result = clEnqueueReadBuffer(command_queue, bufferOutput, CL_TRUE, 0, sizeOutput, output, 0, NULL, NULL);
+        // if(result != CL_SUCCESS) printOpenCLError("clEnqueueReadBuffer", result);
+        result = clEnqueueReadBuffer(command_queue[i], bufferppdHJMPath[i], CL_TRUE, 0, sizeppdHJMPath, ppdHJMPath, 0, NULL, NULL);
+        if(result != CL_SUCCESS) printOpenCLError("clEnqueueReadBuffer", result);
+    }
 
     //debug check output
     // for(int i=0; i<GLOBAL_WORK_ITEMS; i++)
@@ -684,9 +743,12 @@ int HJM_SimPath_Forward_Blocking(FTYPE *ppdHJMPath,    //Matrix that stores gene
     //    if(output[i]) printf("%d: %lf\n", i, output[i]);
     // }
 
-    // Wait for all commands in queue to finish
-    result = clFinish(command_queue);
-    if(result != CL_SUCCESS) printOpenCLError("clFinish", result);
+    for (int i = 0; i < ndev; i++)
+    {
+        // Wait for all commands in queue to finish
+        result = clFinish(command_queue[i]);
+        if(result != CL_SUCCESS) printOpenCLError("clFinish", result);
+    }
 #else
     for(int b=0; b<BLOCKSIZE; b++){ // b is the blocks
       for (j=1;j<=iN-1;++j) {// j is the timestep

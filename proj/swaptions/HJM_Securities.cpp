@@ -339,7 +339,7 @@ int main(int argc, char *argv[])
         }
 */
         printf("start sendrecv\n");
-        //TODO:
+        //TODO: change to multi device opencl
          if(myid==0){
              //MPI_recv()x2x(numprocs-end)
              MPI_Request request[2*(nSwaptions-end)];
