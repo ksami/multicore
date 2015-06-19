@@ -61,7 +61,7 @@ int done_serialB=0;
 
 #ifdef ENABLE_OPENCL
 #include <CL/cl.h>
-#define MAX_DEV 16
+#define MAX_DEV 32
 int ndev = 1;
 
 const char* name_init = "op_init";
@@ -381,21 +381,14 @@ int HJM_SimPath_Forward_Blocking(FTYPE *ppdHJMPath,    //Matrix that stores gene
     context = clCreateContext(0, ndev, device, NULL, NULL, &result);
     if(result!=CL_SUCCESS) printOpenCLError("clCreateContext", result);
 
-    printf("context called, ndev: %d\n", ndev);
-    
     // Create a command queue and attach it to the compute device
     // (in-order queue)
     //cl_command_queue command_queue;
     for (int i = 0; i < ndev; i++)
     {
-        printf("%d queue\n",i);
         command_queue[i] = clCreateCommandQueue(context, device[i], 0, &result);
-        printf("%d queue done\n",i);
         if(result!=CL_SUCCESS) printOpenCLError("clCreateCommandQueue", result);
     }
-    printf("queues called\n");
-    
-
 
 
     // Create an OpenCL program object for the context 
@@ -525,7 +518,6 @@ int HJM_SimPath_Forward_Blocking(FTYPE *ppdHJMPath,    //Matrix that stores gene
     for (int i = 0; i < ndev; i++)
     {
         // Set input
-        // TODO: stopped here, makeing opencl mult devicen
         result = clEnqueueWriteBuffer(command_queue[i], bufferInput[i], CL_FALSE, 0, sizeInput, input, 0, NULL, NULL);
         if(result!=CL_SUCCESS) printOpenCLError("clEnqueueWriteBuffer", result);
         result = clEnqueueWriteBuffer(command_queue[i], bufferpdForward[i], CL_FALSE, 0, sizepdForward, pdForward, 0, NULL, NULL);
@@ -780,6 +772,3 @@ int HJM_SimPath_Forward_Blocking(FTYPE *ppdHJMPath,    //Matrix that stores gene
     iSuccess = 1;
     return iSuccess;
 }
-    
-
-

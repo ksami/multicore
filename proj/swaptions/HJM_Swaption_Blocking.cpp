@@ -35,7 +35,6 @@ int HJM_Swaption_Blocking(FTYPE *pdSwaptionPrice, //Output vector that will stor
         int BLOCKSIZE, int tid, FTYPE *pdZ, FTYPE *randZ)
   
 {
-  printf("swaption blocking called\n");
   int iSuccess = 0;
   int i; 
   int b; //block looping variable
@@ -150,9 +149,6 @@ int HJM_Swaption_Blocking(FTYPE *pdSwaptionPrice, //Output vector that will stor
   dSumSquareSimSwaptionPrice = 0.0;
 
 
-  //TODO: BLOCKSIZE=16, iN=11, iFactors=3,
-  //      iSwapVectorLength=9, lTrials=no. of simulations
-  //long functions: HJM_SimPath_Forward_Blocking
   //Simulations begin:
   for (l=0;l<=lTrials-1;l+=BLOCKSIZE) {
 

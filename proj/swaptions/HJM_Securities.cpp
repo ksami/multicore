@@ -91,7 +91,6 @@ void * worker(void *arg){
     int end = (tid+1)*chunksize;
     if(tid == numprocs -1 )
         end = nSwaptions;
-    printf("id: %d, beg: %d, end: %d\n", tid, beg, end);
 #else
     int chunksize = nSwaptions/nThreads;
     int beg = tid*chunksize;
@@ -137,8 +136,6 @@ int main(int argc, char *argv[])
     MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
     MPI_Comm_rank(MPI_COMM_WORLD, &myid);
 
-    //if(myid==0)
-    //{
 #endif
 
 #ifdef PARSEC_VERSION
@@ -207,12 +204,6 @@ int main(int argc, char *argv[])
     }
 #endif //ENABLE_THREADS
 
-#ifdef ENABLE_MPI
-    //} //myid==0
-    //printf("bcasting\n");
-    //MPI_Bcast(&nSwaptions, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    //printf("bcast done\n");
-#endif
 
     // initialize input dataset
     factors = dmatrix(0, iFactors-1, 0, iN-2);
@@ -321,9 +312,7 @@ int main(int argc, char *argv[])
 
 #else
     #ifdef ENABLE_MPI
-        printf("%d working\n", myid);
         worker(&myid);
-        printf("%d done\n", myid);
         const int dest = 0;
         const int tag = 1000;
         int idx=0;
@@ -337,29 +326,20 @@ int main(int argc, char *argv[])
                 MPI_Sendrecv(&swaptions[i].dSimSwaptionStdError, 1, MPI_DOUBLE, dest, tag, &swaptions[i].dSimSwaptionStdError, 1, MPI_DOUBLE, (i/(end-beg)), tag, MPI_COMM_WORLD, &status);                
             }
         }
-*/
-        printf("start sendrecv\n");
-        //TODO: change to multi device opencl
+        */
          if(myid==0){
-             //MPI_recv()x2x(numprocs-end)
              MPI_Request request[2*(nSwaptions-end)];
              MPI_Status status[2*(nSwaptions-end)];
              for(int i=end; i<nSwaptions; i++){
-                 printf("i: %d\n", i);
                  MPI_Irecv(&swaptions[i].dSimSwaptionMeanPrice, 1, MPI_DOUBLE, i/(end-beg), tag, MPI_COMM_WORLD, &request[idx++]);
                  MPI_Irecv(&swaptions[i].dSimSwaptionStdError, 1, MPI_DOUBLE, i/(end-beg), tag, MPI_COMM_WORLD, &request[idx++]);                
              }
-             printf("waiting\n");
              MPI_Waitall(2*(nSwaptions-end), request, status);
-             printf("done waiting\n");
-
          }
          else{
-             //MPI_send()x2x(beg-end)
              MPI_Request request[2*(end-beg)];
              MPI_Status status[2*(end-beg)];
              for(int i=beg; i<end; i++){
-                printf("%d sending from %d\n", i, myid);
                  MPI_Isend(&swaptions[i].dSimSwaptionMeanPrice, 1, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD, &request[idx++]);
                  MPI_Isend(&swaptions[i].dSimSwaptionStdError, 1, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD, &request[idx++]);
              }
