@@ -338,7 +338,6 @@ int HJM_SimPath_Forward_Blocking(FTYPE *ppdHJMPath,    //Matrix that stores gene
                  int BLOCKSIZE, FTYPE* pdZ, FTYPE* randZ)
 {   
 //This function computes and stores an HJM Path for given inputs
-
 #ifdef ENABLE_OPENCL
     int GLOBAL_WORK_ITEMS = 176;
     cl_int result;
@@ -382,12 +381,20 @@ int HJM_SimPath_Forward_Blocking(FTYPE *ppdHJMPath,    //Matrix that stores gene
     context = clCreateContext(0, ndev, device, NULL, NULL, &result);
     if(result!=CL_SUCCESS) printOpenCLError("clCreateContext", result);
 
+    printf("context called, ndev: %d\n", ndev);
+    
     // Create a command queue and attach it to the compute device
     // (in-order queue)
     //cl_command_queue command_queue;
     for (int i = 0; i < ndev; i++)
+    {
+        printf("%d queue\n",i);
         command_queue[i] = clCreateCommandQueue(context, device[i], 0, &result);
-    if(result!=CL_SUCCESS) printOpenCLError("clCreateCommandQueue", result);
+        printf("%d queue done\n",i);
+        if(result!=CL_SUCCESS) printOpenCLError("clCreateCommandQueue", result);
+    }
+    printf("queues called\n");
+    
 
 
 

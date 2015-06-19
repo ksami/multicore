@@ -137,8 +137,8 @@ int main(int argc, char *argv[])
     MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
     MPI_Comm_rank(MPI_COMM_WORLD, &myid);
 
-    if(myid==0)
-    {
+    //if(myid==0)
+    //{
 #endif
 
 #ifdef PARSEC_VERSION
@@ -208,10 +208,10 @@ int main(int argc, char *argv[])
 #endif //ENABLE_THREADS
 
 #ifdef ENABLE_MPI
-    } //myid==0
-    printf("bcasting\n");
-    MPI_Bcast(&nSwaptions, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    printf("bcast done\n");
+    //} //myid==0
+    //printf("bcasting\n");
+    //MPI_Bcast(&nSwaptions, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    //printf("bcast done\n");
 #endif
 
     // initialize input dataset
@@ -359,6 +359,7 @@ int main(int argc, char *argv[])
              MPI_Request request[2*(end-beg)];
              MPI_Status status[2*(end-beg)];
              for(int i=beg; i<end; i++){
+                printf("%d sending from %d\n", i, myid);
                  MPI_Isend(&swaptions[i].dSimSwaptionMeanPrice, 1, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD, &request[idx++]);
                  MPI_Isend(&swaptions[i].dSimSwaptionStdError, 1, MPI_DOUBLE, dest, tag, MPI_COMM_WORLD, &request[idx++]);
              }

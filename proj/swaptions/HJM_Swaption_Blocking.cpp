@@ -35,6 +35,7 @@ int HJM_Swaption_Blocking(FTYPE *pdSwaptionPrice, //Output vector that will stor
         int BLOCKSIZE, int tid, FTYPE *pdZ, FTYPE *randZ)
   
 {
+  printf("swaption blocking called\n");
   int iSuccess = 0;
   int i; 
   int b; //block looping variable
